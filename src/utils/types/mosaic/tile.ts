@@ -1,0 +1,8 @@
+import { MosaicTileType } from './tiles';
+
+export type MosaicTile = {
+  viewId: string;
+  type: MosaicTileType;
+  element: JSX.Element;
+  title: string;
+};
