@@ -4,11 +4,6 @@ import { MosaicTilesRepository } from "../types/mosaic/tiles";
 import { v4 as uuidv4 } from "uuid";
 import { MosaicTile } from "../types/mosaic/tile";
 
-const createNewNode = (): string => {
-  const randomUniqueId = uuidv4();
-  return randomUniqueId;
-};
-
 export const initializeTiles = (): MosaicTilesRepository => {
   const tiles: MosaicTile[] = [];
   tiles.push(createInstance("analog"));
@@ -31,7 +26,7 @@ export const renderTile = (
   )?.title;
 
   if (!element || !title) {
-    const tile = createInstance("analog");
+    const tile = createInstance("analog", id);
     element = tile.element;
     title = tile.title;
   }
@@ -44,7 +39,11 @@ export const renderTile = (
     return (
       <MosaicWindow
         path={path}
-        createNode={() => createNewNode()}
+        createNode={() => {
+          const id = uuidv4();
+          console.log("createNode", id);
+          return id;
+        }}
         title={title || "Untitled"}
       >
         {element}

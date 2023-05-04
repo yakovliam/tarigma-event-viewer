@@ -1,3 +1,3 @@
-import { THEMES } from 'utils/mosaic/theme';
+import { THEMES } from "../../mosaic/theme";
 
 export type Theme = keyof typeof THEMES;
