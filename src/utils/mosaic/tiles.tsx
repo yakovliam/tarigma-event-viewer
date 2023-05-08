@@ -1,46 +1,40 @@
+import AnalogPane from "../../app/components/panes/analog/AnalogPane";
+import DigitalPane from "../../app/components/panes/digital/DigitalPane";
+import EventsPane from "../../app/components/panes/events/EventsPane";
 import { MosaicTile } from "../types/mosaic/tile";
 import { MosaicTileType } from "../types/mosaic/tiles";
 import { v4 as uuidv4 } from "uuid";
-
-const colorBasedOffofUUID = (uuid: string): string => {
-  const first3 = uuid.slice(0, 3);
-  const first3AsNumber = parseInt(first3, 16);
-  const color = first3AsNumber % 360;
-  return `hsl(${color}, 100%, 80%)`;
-};
 
 export const createInstance = (
   type: MosaicTileType,
   viewId?: string
 ): MosaicTile => {
-
   // create a new id
   const id = viewId || uuidv4();
 
-  const first3 = id.slice(0, 3);
+  let tileContent: JSX.Element | undefined;
 
-  // create a new instance of the tile
-  const tileContent = (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100%",
-        width: "100%",
-        backgroundColor: colorBasedOffofUUID(id),
-      }}
-    >
-      <h1>{first3}</h1>
-    </div>
-  );
+  switch (type) {
+    case "events":
+      tileContent = <EventsPane />;
+      break;
+    case "analog":
+      tileContent = <AnalogPane />;
+      break;
+    case "digital":
+      tileContent = <DigitalPane />;
+      break;
+    default:
+      tileContent = <div>Unknown tile type</div>;
+      break;
+  }
 
   // create the object
   const tile: MosaicTile = {
     type: type,
     viewId: id,
     // capitalize the first letter of the tile type
-    title: type.charAt(0).toUpperCase() + type.slice(1),
+    title: type.charAt(0).toUpperCase() + type.slice(1) + ": " + id.slice(0, 3),
     element: tileContent,
   };
 
