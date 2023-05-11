@@ -3,12 +3,12 @@ import {
   ExpandButton,
   MosaicBranch,
   MosaicWindow,
-  RemoveButton,
   SplitButton,
 } from "react-mosaic-component";
 import { MosaicTilesRepository } from "../types/mosaic/tiles";
 import { v4 as uuidv4 } from "uuid";
 import { MosaicTile } from "../types/mosaic/tile";
+import { Button } from "@blueprintjs/core";
 
 export const initializeTiles = (): MosaicTilesRepository => {
   const tiles: MosaicTile[] = [];
@@ -33,8 +33,15 @@ export const renderTile = (
       <MosaicWindow
         toolbarControls={[
           <ExpandButton key={0} />,
-          <SplitButton key={1} />,
-          <RemoveButton
+          <SplitButton
+            key={1}
+            onClick={() => {
+              // addTile(uuidv4());
+            }}
+          />,
+          <Button
+            minimal
+            icon="cross"
             key={2}
             onClick={() => {
               removeTile(id);

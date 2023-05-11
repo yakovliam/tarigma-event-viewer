@@ -19,7 +19,7 @@ export const createInstance = (
       tileContent = <EventsPane />;
       break;
     case "analog":
-      tileContent = <AnalogPane />;
+      tileContent = <AnalogPane viewId={id} />;
       break;
     case "digital":
       tileContent = <DigitalPane />;
@@ -33,7 +33,6 @@ export const createInstance = (
   const tile: MosaicTile = {
     type: type,
     viewId: id,
-    // capitalize the first letter of the tile type
     title: type.charAt(0).toUpperCase() + type.slice(1) + ": " + id.slice(0, 3),
     element: tileContent,
   };
