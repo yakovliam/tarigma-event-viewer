@@ -17,11 +17,8 @@ import {
   mosaicState as mosaicStateAtom,
 } from "../../../utils/recoil/atoms";
 import { createInstance } from "../../../utils/mosaic/tiles";
-import { Button, Colors, NonIdealState } from "@blueprintjs/core";
 import styled from "styled-components";
-import { v4 as uuidv4 } from "uuid";
 import { THEMES } from "../../../utils/types/mosaic/theme";
-import { isDarkTheme } from "../../../utils/types/blueprint/theme-utils";
 import { addToTopRight, getPathById } from "../../../utils/mosaic/leaf-utils";
 import EmptyMosaicInfo from "../../components/empty/EmptyMosaicInfo";
 
