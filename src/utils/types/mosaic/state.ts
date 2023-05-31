@@ -1,9 +1,9 @@
 import { MosaicNode } from "react-mosaic-component";
-import { MosaicTheme } from "../blueprint/theme";
+import { BlueprintTheme } from "../blueprint/theme";
 
 interface MosaicState {
   currentNode: MosaicNode<string> | null | undefined;
-  currentTheme: MosaicTheme;
+  currentTheme: BlueprintTheme;
 }
 
 export default MosaicState;

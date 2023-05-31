@@ -21,6 +21,8 @@ const AnalogPane = (props: AnalogPaneProps) => {
 
   const { observe, unobserve, width, height } = useDimensions();
 
+  console.log(props.viewId);
+
   useEffect(() => {
     return () => {
       unobserve();

@@ -7,10 +7,8 @@ import useDimensions from "react-cool-dimensions";
 import {
   CanvasGroup,
   DomainTuple,
-  Tuple,
   VictoryBar,
   VictoryChart,
-  VictoryContainer,
   VictoryLine,
   VictoryZoomContainer,
 } from "victory";
@@ -38,20 +36,21 @@ const pixelsToDomain = (
   );
 };
 
-const domainToPixels = (
-  domain: number,
-  minDomain: number,
-  maxDomain: number,
-  minPixels: number,
-  maxPixels: number
-) => {
-  return (
-    ((domain - minDomain) / (maxDomain - minDomain)) * (maxPixels - minPixels) +
-    minPixels
-  );
-};
+// const domainToPixels = (
+//   domain: number,
+//   minDomain: number,
+//   maxDomain: number,
+//   minPixels: number,
+//   maxPixels: number
+// ) => {
+//   return (
+//     ((domain - minDomain) / (maxDomain - minDomain)) * (maxPixels - minPixels) +
+//     minPixels
+//   );
+// };
 
 const DigitalPane = (props: DigitalPaneProps) => {
+  console.log(props.viewId);
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
 
   const { observe, unobserve, width, height } = useDimensions();
@@ -69,18 +68,17 @@ const DigitalPane = (props: DigitalPaneProps) => {
     y: DomainTuple;
   });
   const [pointerIcon, setPointerIcon] = useState("default" as PointerIcon);
-  const [canPan, setCanPan] = useState(true);
 
   const hookCursor = () => {
-    setCanPan(false);
     setCursorIsHooked(true);
+    console.log("cursor hooked");
   };
 
   const unhookCursor = () => {
     if (cursorIsHooked) {
       setCursorIsHooked(false);
+      console.log("cursor unhooked");
     }
-    setCanPan(true);
   };
 
   const handleZoomDomainChange = (domain: {
@@ -118,14 +116,6 @@ const DigitalPane = (props: DigitalPaneProps) => {
     setCursorX(x);
   };
 
-  useEffect(() => {
-    if (cursorIsHooked) {
-      console.log("cursor is hooked");
-    } else {
-      console.log("cursor is not hooked");
-    }
-  }, [cursorIsHooked]);
-
   return (
     <PaneWrapper
       $isDark={isDarkTheme(blueprintTheme)}
@@ -135,6 +125,9 @@ const DigitalPane = (props: DigitalPaneProps) => {
         unhookCursor();
       }}
       onMouseDown={(e: MouseEvent) => {
+        console.log("MOUSE DOWN");
+
+        // get the mouse's relative domain (x coordinate) by converting the mouse's x pixel offset to a domain value
         const relativeDomain = pixelsToDomain(
           e.nativeEvent.offsetX,
           leftPadding,
@@ -143,12 +136,14 @@ const DigitalPane = (props: DigitalPaneProps) => {
           zoomDomain.y[1] as number
         );
 
-        // if relative domain is nearby the cursor, hook the cursor
+        // if the mouse's relative domain is nearby the cursor, hook the cursor
         if (Math.abs(relativeDomain - cursorX) < 0.08) {
           hookCursor();
+          return;
         }
       }}
       onMouseUp={() => {
+        console.log("MOUSE UP");
         unhookCursor();
       }}
     >
@@ -171,7 +166,7 @@ const DigitalPane = (props: DigitalPaneProps) => {
         groupComponent={<CanvasGroup />}
         containerComponent={
           <VictoryZoomContainer
-            disable={!canPan}
+            // disable={cursorIsHooked}
             onZoomDomainChange={(domain) =>
               handleZoomDomainChange(
                 domain as { x: DomainTuple; y: DomainTuple }

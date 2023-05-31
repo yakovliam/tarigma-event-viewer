@@ -16,13 +16,13 @@ export const createInstance = (
 
   switch (type) {
     case "events":
-      tileContent = <EventsPane />;
+      tileContent = <EventsPane viewId={id} />;
       break;
     case "analog":
       tileContent = <AnalogPane viewId={id} />;
       break;
     case "digital":
-      tileContent = <DigitalPane />;
+      tileContent = <DigitalPane viewId={id} />;
       break;
     default:
       tileContent = <div>Unknown tile type</div>;
