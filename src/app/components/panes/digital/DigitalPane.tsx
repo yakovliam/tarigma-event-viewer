@@ -7,10 +7,8 @@ import useDimensions from "react-cool-dimensions";
 import {
   CanvasGroup,
   DomainTuple,
-  Tuple,
   VictoryBar,
   VictoryChart,
-  VictoryContainer,
   VictoryLine,
   VictoryZoomContainer,
 } from "victory";
@@ -38,20 +36,21 @@ const pixelsToDomain = (
   );
 };
 
-const domainToPixels = (
-  domain: number,
-  minDomain: number,
-  maxDomain: number,
-  minPixels: number,
-  maxPixels: number
-) => {
-  return (
-    ((domain - minDomain) / (maxDomain - minDomain)) * (maxPixels - minPixels) +
-    minPixels
-  );
-};
+// const domainToPixels = (
+//   domain: number,
+//   minDomain: number,
+//   maxDomain: number,
+//   minPixels: number,
+//   maxPixels: number
+// ) => {
+//   return (
+//     ((domain - minDomain) / (maxDomain - minDomain)) * (maxPixels - minPixels) +
+//     minPixels
+//   );
+// };
 
 const DigitalPane = (props: DigitalPaneProps) => {
+  console.log(props.viewId);
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
 
   const { observe, unobserve, width, height } = useDimensions();
@@ -80,16 +79,25 @@ const DigitalPane = (props: DigitalPaneProps) => {
     null
   );
 
+  const [initialPositionX, setInitialPositionX] = useState<number | null>(null);
+  const [initialDomainX, setInitialDomainX] = useState<DomainTuple | null>(
+    null
+  );
+  const [initialPositionY, setInitialPositionY] = useState<number | null>(null);
+  const [initialDomainY, setInitialDomainY] = useState<DomainTuple | null>(
+    null
+  );
+
   const hookCursor = () => {
-    setCanPan(false);
     setCursorIsHooked(true);
+    console.log("cursor hooked");
   };
 
   const unhookCursor = () => {
     if (cursorIsHooked) {
       setCursorIsHooked(false);
+      console.log("cursor unhooked");
     }
-    setCanPan(true);
   };
 
   const handleZoomDomainChange = (domain: {
@@ -116,8 +124,8 @@ const DigitalPane = (props: DigitalPaneProps) => {
         (initialDomainX[1] as number) - (initialDomainX[0] as number);
       const domainHeight =
         (initialDomainY[1] as number) - (initialDomainY[0] as number);
-      var domainDx = (domainWidth * dx) / width;
-      var domainDy = (-1 * (domainHeight * dy)) / height;
+      let domainDx = (domainWidth * dx) / width;
+      let domainDy = (-1 * (domainHeight * dy)) / height;
 
       if ((initialDomainX[0] as number) - domainDx < 0)
         domainDx = initialDomainX[0] as number;
@@ -161,14 +169,6 @@ const DigitalPane = (props: DigitalPaneProps) => {
     setCursorX(x);
   };
 
-  useEffect(() => {
-    if (cursorIsHooked) {
-      console.log("cursor is hooked");
-    } else {
-      console.log("cursor is not hooked");
-    }
-  }, [cursorIsHooked]);
-
   return (
     <PaneWrapper
       $isDark={isDarkTheme(blueprintTheme)}
@@ -201,6 +201,7 @@ const DigitalPane = (props: DigitalPaneProps) => {
       }}
       // On mouse up, clear the initial position and domain
       onMouseUp={() => {
+        console.log("MOUSE UP");
         unhookCursor();
         setInitialPositionX(null);
         setInitialDomainX(null);

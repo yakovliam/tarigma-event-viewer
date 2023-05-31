@@ -23,6 +23,7 @@ const TemporaryTextWrapper = styled(Text)`
 `;
 
 const EventsPane = (props: EventsPaneProps) => {
+  console.log(props.viewId);
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
   return (
     <PaneWrapper $isDark={isDarkTheme(blueprintTheme)}>
