@@ -68,16 +68,7 @@ const DigitalPane = (props: DigitalPaneProps) => {
     y: DomainTuple;
   });
   const [pointerIcon, setPointerIcon] = useState("default" as PointerIcon);
-  const [canPan, setCanPan] = useState(true);
-
-  const [initialPositionX, setInitialPositionX] = useState<number | null>(null);
-  const [initialDomainX, setInitialDomainX] = useState<DomainTuple | null>(
-    null
-  );
-  const [initialPositionY, setInitialPositionY] = useState<number | null>(null);
-  const [initialDomainY, setInitialDomainY] = useState<DomainTuple | null>(
-    null
-  );
+  const [canPan] = useState(true);
 
   const [initialPositionX, setInitialPositionX] = useState<number | null>(null);
   const [initialDomainX, setInitialDomainX] = useState<DomainTuple | null>(
