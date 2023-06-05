@@ -68,6 +68,16 @@ const DigitalPane = (props: DigitalPaneProps) => {
     y: DomainTuple;
   });
   const [pointerIcon, setPointerIcon] = useState("default" as PointerIcon);
+  const [canPan] = useState(true);
+
+  const [initialPositionX, setInitialPositionX] = useState<number | null>(null);
+  const [initialDomainX, setInitialDomainX] = useState<DomainTuple | null>(
+    null
+  );
+  const [initialPositionY, setInitialPositionY] = useState<number | null>(null);
+  const [initialDomainY, setInitialDomainY] = useState<DomainTuple | null>(
+    null
+  );
 
   const hookCursor = () => {
     setCursorIsHooked(true);
@@ -87,11 +97,45 @@ const DigitalPane = (props: DigitalPaneProps) => {
   }) => {
     if (cursorIsHooked) {
       return;
-    }
+    } // should be removable
     setZoomDomain(domain);
   };
 
   const handleMouseMove = (e: MouseEvent) => {
+    if (
+      initialPositionX !== null &&
+      initialDomainX !== null &&
+      initialPositionY !== null &&
+      initialDomainY !== null &&
+      canPan
+    ) {
+      const dy = e.clientY - initialPositionY;
+      const dx = e.clientX - initialPositionX;
+      const domainWidth =
+        (initialDomainX[1] as number) - (initialDomainX[0] as number);
+      const domainHeight =
+        (initialDomainY[1] as number) - (initialDomainY[0] as number);
+      let domainDx = (domainWidth * dx) / width;
+      let domainDy = (-1 * (domainHeight * dy)) / height;
+
+      if ((initialDomainX[0] as number) - domainDx < 0)
+        domainDx = initialDomainX[0] as number;
+      if ((initialDomainY[0] as number) - domainDy < 0)
+        domainDy = initialDomainY[0] as number;
+      setZoomDomain({
+        y: [
+          // change x to y
+          (initialDomainX[0] as number) - domainDx,
+          (initialDomainX[1] as number) - domainDx,
+        ],
+        x: [
+          // change x to y
+          (initialDomainY[0] as number) - domainDy,
+          (initialDomainY[1] as number) - domainDy,
+        ], // change y to x
+      });
+    }
+
     if (!cursorIsHooked) {
       return;
     }
@@ -120,14 +164,16 @@ const DigitalPane = (props: DigitalPaneProps) => {
     <PaneWrapper
       $isDark={isDarkTheme(blueprintTheme)}
       ref={observe}
-      onMouseMove={handleMouseMove}
+      // onMouseMove={handleMouseMove}
       onMouseLeave={() => {
         unhookCursor();
+        setInitialPositionX(null);
+        setInitialDomainX(null);
+        setInitialPositionY(null);
+        setInitialDomainY(null);
       }}
-      onMouseDown={(e: MouseEvent) => {
-        console.log("MOUSE DOWN");
-
-        // get the mouse's relative domain (x coordinate) by converting the mouse's x pixel offset to a domain value
+      // On mouse down, store the initial position and domain
+      onMouseDown={(e) => {
         const relativeDomain = pixelsToDomain(
           e.nativeEvent.offsetX,
           leftPadding,
@@ -136,16 +182,25 @@ const DigitalPane = (props: DigitalPaneProps) => {
           zoomDomain.y[1] as number
         );
 
-        // if the mouse's relative domain is nearby the cursor, hook the cursor
-        if (Math.abs(relativeDomain - cursorX) < 0.08) {
-          hookCursor();
-          return;
+        if (Math.abs(relativeDomain - cursorX) < 0.05) hookCursor();
+        else {
+          setInitialPositionX(e.clientX);
+          setInitialDomainX(zoomDomain.y);
+          setInitialPositionY(e.clientY);
+          setInitialDomainY(zoomDomain.x);
         }
       }}
+      // On mouse up, clear the initial position and domain
       onMouseUp={() => {
         console.log("MOUSE UP");
         unhookCursor();
+        setInitialPositionX(null);
+        setInitialDomainX(null);
+        setInitialPositionY(null);
+        setInitialDomainY(null);
       }}
+      // On mouse move, if the mouse is down, update the domain
+      onMouseMove={handleMouseMove}
     >
       <VictoryChart
         width={width}
@@ -165,12 +220,11 @@ const DigitalPane = (props: DigitalPaneProps) => {
         maxDomain={{ y: 10, x: 6 }}
         groupComponent={<CanvasGroup />}
         containerComponent={
-          <VictoryZoomContainer
-            // disable={cursorIsHooked}
-            onZoomDomainChange={(domain) =>
-              handleZoomDomainChange(
-                domain as { x: DomainTuple; y: DomainTuple }
-              )
+          <VictoryZoomContainer // zoom and pan
+            allowPan={false}
+            zoomDomain={zoomDomain}
+            onZoomDomainChange={
+              (domain) => handleZoomDomainChange(domain) //setZoomDomain(domain as { x: DomainTuple; y: DomainTuple })
             }
             responsive={true}
           />
