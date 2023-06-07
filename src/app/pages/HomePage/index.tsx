@@ -21,6 +21,7 @@ import styled from "styled-components";
 import { THEMES } from "../../../utils/types/mosaic/theme";
 import { addToTopRight, getPathById } from "../../../utils/mosaic/leaf-utils";
 import EmptyMosaicInfo from "../../components/empty/EmptyMosaicInfo";
+import { Provider as BusProvider } from 'react-bus'
 
 export function HomePage() {
   const [repository, setRepository] = useRecoilState(mosaicRepository);
@@ -138,6 +139,7 @@ export function HomePage() {
 
   return (
     <>
+    <BusProvider>
       <CenteredFlexWrapper>
         {/* If there are any available tiles, show them with the mosaic wrapper */}
         {repository.length > 0 ? (
@@ -170,6 +172,7 @@ export function HomePage() {
           />
         )}
       </CenteredFlexWrapper>
+      </BusProvider>
     </>
   );
 }

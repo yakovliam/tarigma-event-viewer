@@ -2627,6 +2627,11 @@ minimatch@^3.0.5, minimatch@^3.1.1, minimatch@^3.1.2:
   dependencies:
     brace-expansion "^1.1.7"
 
+mitt@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/mitt/-/mitt-2.1.0.tgz#f740577c23176c6205b121b2973514eade1b2230"
+  integrity sha512-ILj2TpLiysu2wkBbWjAmww7TkZb65aiQO+DkVdUTBpBXq+MHYiETENkKFMtsJZX1Lf4pe4QOrTSjIfUwN5lRdg==
+
 ms@2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
@@ -2843,6 +2848,13 @@ rdndmb-html5-to-touch@^8.0.0:
     dnd-multi-backend "^8.0.0"
     react-dnd-html5-backend "^16.0.1"
     react-dnd-touch-backend "^16.0.1"
+
+react-bus@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/react-bus/-/react-bus-3.0.0.tgz#55ccc3b74c11cda6252e27be95b395e94a652399"
+  integrity sha512-CJPgqak5+YWoU0Hzj1tfkVpzMwn7nrymJioRAHVv7+8/TwM7qUqrSCQ7tYOHX3suA6mn7zB+6S4pYee9x57IiA==
+  dependencies:
+    mitt "^2.1.0"
 
 react-cool-dimensions@^3.0.1:
   version "3.0.1"

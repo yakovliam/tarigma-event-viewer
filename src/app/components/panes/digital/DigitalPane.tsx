@@ -13,6 +13,8 @@ import {
   VictoryZoomContainer,
 } from "victory";
 import { MouseEvent } from "react";
+import { useBus, useListener } from 'react-bus'
+import GlobalCursorMove, { BusConstants } from "../../../../utils/types/bus/globalcursormove";
 
 const leftPadding = 50;
 const rightPadding = 20;
@@ -50,7 +52,7 @@ const pixelsToDomain = (
 // };
 
 const DigitalPane = (props: DigitalPaneProps) => {
-  console.log(props.viewId);
+  //console.log(props.viewId);
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
 
   const { observe, unobserve, width, height } = useDimensions();
@@ -78,16 +80,17 @@ const DigitalPane = (props: DigitalPaneProps) => {
   const [initialDomainY, setInitialDomainY] = useState<DomainTuple | null>(
     null
   );
+  const bus = useBus()
 
   const hookCursor = () => {
     setCursorIsHooked(true);
-    console.log("cursor hooked");
+    //console.log("cursor hooked");
   };
 
   const unhookCursor = () => {
     if (cursorIsHooked) {
       setCursorIsHooked(false);
-      console.log("cursor unhooked");
+      //console.log("cursor unhooked");
     }
   };
 
@@ -157,8 +160,15 @@ const DigitalPane = (props: DigitalPaneProps) => {
       graphXMax
     );
 
+    bus.emit(BusConstants.CURSOR_MOVE, x)
     setCursorX(x);
   };
+
+  const handleGlobalCursorMove = (gcmove: number) => {
+    setCursorX(gcmove)
+  } 
+
+  useListener(BusConstants.CURSOR_MOVE, handleGlobalCursorMove)
 
   return (
     <PaneWrapper
@@ -192,7 +202,7 @@ const DigitalPane = (props: DigitalPaneProps) => {
       }}
       // On mouse up, clear the initial position and domain
       onMouseUp={() => {
-        console.log("MOUSE UP");
+        //console.log("MOUSE UP");
         unhookCursor();
         setInitialPositionX(null);
         setInitialDomainX(null);

@@ -1,5 +1,6 @@
 import { useRecoilValue } from "recoil";
 import { isDarkTheme } from "../../../../utils/types/blueprint/theme-utils";
+import { BusConstants } from "../../../../utils/types/bus/globalcursormove";
 import { blueprintThemeRepository } from "../../../../utils/recoil/atoms";
 import PaneWrapper from "../PaneWrapper";
 import {
@@ -12,6 +13,7 @@ import {
 } from "victory";
 import { useEffect, useState } from "react";
 import useDimensions from "react-cool-dimensions";
+import { useBus, useListener } from "react-bus";
 
 const leftPadding = 50;
 const rightPadding = 20;
@@ -58,8 +60,9 @@ const AnalogPane = (props: AnalogPaneProps) => {
   const [cursorIsHooked, setCursorIsHooked] = useState(false);
   const [pointerIcon, setPointerIcon] = useState("default" as PointerIcon);
   const [canPan] = useState(true);
+  const bus = useBus();
 
-  // console.log(props.viewId);
+  // //console.log(props.viewId);
 
   useEffect(() => {
     return () => {
@@ -69,13 +72,13 @@ const AnalogPane = (props: AnalogPaneProps) => {
 
   const hookCursor = () => {
     setCursorIsHooked(true);
-    console.log("cursor hooked");
+    //console.log("cursor hooked");
   };
 
   const unhookCursor = () => {
     if (cursorIsHooked) {
       setCursorIsHooked(false);
-      console.log("cursor unhooked");
+      //console.log("cursor unhooked");
     }
   };
 
@@ -83,11 +86,12 @@ const AnalogPane = (props: AnalogPaneProps) => {
     x: DomainTuple;
     y: DomainTuple;
   }) => {
-    // console.log(domain);
+    // //console.log(domain);
     setZoomDomain(domain);
   };
 
   const handleMouseMove = (e: MouseEvent) => {
+    
     if (
       initialPositionX !== null &&
       initialDomainX !== null &&
@@ -109,6 +113,10 @@ const AnalogPane = (props: AnalogPaneProps) => {
       if ((initialDomainY[0] as number) - domainDy < 0)
         domainDy = initialDomainY[0] as number;
 
+
+        // console.table({dy,dx,domainWidth,domainHeight,domainDx,domainDy})
+        
+
       setZoomDomain({
         y: [
           // change x to y
@@ -121,9 +129,11 @@ const AnalogPane = (props: AnalogPaneProps) => {
           (initialDomainX[1] as number) - domainDx,
         ], // change y to x
       });
-      console.table(zoomDomain)
+      // console.table(zoomDomain);
+      console.table({initx: initialDomainX, inity: initialDomainY})
+
     }
-    // console.log(cursorIsHooked)
+    // //console.log(cursorIsHooked)
     if (!cursorIsHooked) {
       return;
     }
@@ -145,9 +155,15 @@ const AnalogPane = (props: AnalogPaneProps) => {
       graphXMax
     );
 
+    bus.emit(BusConstants.CURSOR_MOVE, x);
     setCursorX(x);
-    console.log(x);
   };
+
+  const handleGlobalCursorMove = (x: number) => {
+    setCursorX(x);
+  };
+
+  useListener(BusConstants.CURSOR_MOVE, handleGlobalCursorMove);
 
   return (
     <PaneWrapper
@@ -177,10 +193,10 @@ const AnalogPane = (props: AnalogPaneProps) => {
           "zoomdomain.y": zoomDomain.y,
           "zoomdomain.x": zoomDomain.x,
         };
-        console.table(loggeddat);
+        //console.table(loggeddat);
 
         if (Math.abs(relativeDomain - cursorX) < 0.05) {
-          console.log("hooked");
+          //console.log("hooked");
           hookCursor();
         } else {
           setInitialPositionX(e.clientX);
@@ -190,7 +206,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
         }
       }}
       onMouseUp={() => {
-        console.log("MOUSE UP");
+        //console.log("MOUSE UP");
         unhookCursor();
         setInitialPositionX(null);
         setInitialDomainX(null);
@@ -214,7 +230,6 @@ const AnalogPane = (props: AnalogPaneProps) => {
         containerComponent={
           <VictoryZoomContainer
             allowPan={false}
-            
             zoomDomain={zoomDomain}
             onZoomDomainChange={
               (domain: any) => handleZoomDomainChange(domain) //setZoomDomain(domain as { x: DomainTuple; y: DomainTuple })
@@ -251,7 +266,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
           style={{
             data: { stroke: "blue" },
           }}
-          samples={1000}
+          samples={100}
           y={(d) => Math.sin(10 * Math.PI * d.x)}
         />
         <VictoryLine
@@ -260,7 +275,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
           style={{
             data: { stroke: "red" },
           }}
-          samples={1000}
+          samples={100}
           y={(d) => 2 * Math.sin(Math.PI + 10 * Math.PI * d.x)}
         />
         <VictoryLine
@@ -269,7 +284,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
           style={{
             data: { stroke: "#ff9500" },
           }}
-          samples={1000}
+          samples={100}
           y={(d) => 2.3 * Math.sin(0.33 * Math.PI + 10 * Math.PI * d.x)}
         />
         <VictoryLine
