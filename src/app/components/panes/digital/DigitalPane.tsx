@@ -125,6 +125,11 @@ const DigitalPane = (props: DigitalPaneProps) => {
         domainDx = initialDomainX[0] as number;
       if ((initialDomainY[0] as number) - domainDy < 0)
         domainDy = initialDomainY[0] as number;
+
+
+        console.table({dy,dx,domainWidth,domainHeight,domainDx,domainDy})
+
+
       setZoomDomain({
         y: [
           // change x to y

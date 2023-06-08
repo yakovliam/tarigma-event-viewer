@@ -91,7 +91,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    
+    // console.table(zoomDomain)
     if (
       initialPositionX !== null &&
       initialDomainX !== null &&
@@ -106,31 +106,37 @@ const AnalogPane = (props: AnalogPaneProps) => {
       const domainHeight =
         (initialDomainY[1] as number) - (initialDomainY[0] as number);
       let domainDx = (domainWidth * dx) / width;
-      let domainDy = (-1 * (domainHeight * dy)) / height;
+      const domainDy = (-1 * (domainHeight * dy)) / height;
 
-      if ((initialDomainX[0] as number) - domainDx < 0)
-        domainDx = initialDomainX[0] as number;
-      if ((initialDomainY[0] as number) - domainDy < 0)
-        domainDy = initialDomainY[0] as number;
+      //console.log(initialDomainY[0], domainDx, initialDomainX[0] - domainDx)
+
+      console.log(zoomDomain.x[0])
+      //(initialDomainX[0] as number) + domainDx > 0.15
+      if (!(zoomDomain.x[0] <= 0.15)){
+        setZoomDomain({
+          y: [
+            // change x to y
+            (initialDomainY[0] as number) - domainDy,
+            (initialDomainY[1] as number) - domainDy,
+          ],
+          x: [
+            // change x to y
+            (initialDomainX[0] as number) - domainDx,
+            (initialDomainX[1] as number) - domainDx,
+          ], // change y to x
+        });
+      }
+        //console.log(initialDomainY[0])
+        //console.table(zoomDomain)
+//        console.log("beyond y")
+        //domainDy = initialDomainY[0] as number;
 
 
         // console.table({dy,dx,domainWidth,domainHeight,domainDx,domainDy})
-        
 
-      setZoomDomain({
-        y: [
-          // change x to y
-          (initialDomainY[0] as number) - domainDy,
-          (initialDomainY[1] as number) - domainDy,
-        ],
-        x: [
-          // change x to y
-          (initialDomainX[0] as number) - domainDx,
-          (initialDomainX[1] as number) - domainDx,
-        ], // change y to x
-      });
-      // console.table(zoomDomain);
-      console.table({initx: initialDomainX, inity: initialDomainY})
+        // console.log(initialDomainX[1], initialDomainX[0], domainWidth)
+      //console.table(zoomDomain);
+      // console.table({initx: initialDomainX, inity: initialDomainY})
 
     }
     // //console.log(cursorIsHooked)
@@ -200,9 +206,9 @@ const AnalogPane = (props: AnalogPaneProps) => {
           hookCursor();
         } else {
           setInitialPositionX(e.clientX);
-          setInitialDomainX(zoomDomain.y);
+          setInitialDomainX(zoomDomain.x);
           setInitialPositionY(e.clientY);
-          setInitialDomainY(zoomDomain.x);
+          setInitialDomainY(zoomDomain.y);
         }
       }}
       onMouseUp={() => {
