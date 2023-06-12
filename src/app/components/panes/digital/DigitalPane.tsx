@@ -13,8 +13,8 @@ import {
   VictoryZoomContainer,
 } from "victory";
 import { MouseEvent } from "react";
-import { useBus, useListener } from 'react-bus'
-import GlobalCursorMove, { BusConstants } from "../../../../utils/types/bus/globalcursormove";
+import { useBus, useListener } from "react-bus";
+import { BusConstants } from "../../../../utils/types/bus/globalcursormove";
 
 const leftPadding = 50;
 const rightPadding = 20;
@@ -80,7 +80,7 @@ const DigitalPane = (props: DigitalPaneProps) => {
   const [initialDomainY, setInitialDomainY] = useState<DomainTuple | null>(
     null
   );
-  const bus = useBus()
+  const bus = useBus();
 
   const hookCursor = () => {
     setCursorIsHooked(true);
@@ -126,9 +126,7 @@ const DigitalPane = (props: DigitalPaneProps) => {
       if ((initialDomainY[0] as number) - domainDy < 0)
         domainDy = initialDomainY[0] as number;
 
-
-        console.table({dy,dx,domainWidth,domainHeight,domainDx,domainDy})
-
+      console.table({ dy, dx, domainWidth, domainHeight, domainDx, domainDy });
 
       setZoomDomain({
         y: [
@@ -165,15 +163,16 @@ const DigitalPane = (props: DigitalPaneProps) => {
       graphXMax
     );
 
-    bus.emit(BusConstants.CURSOR_MOVE, x)
+    bus.emit(BusConstants.CURSOR_MOVE, x);
     setCursorX(x);
   };
 
-  const handleGlobalCursorMove = (gcmove: number) => {
-    setCursorX(gcmove)
-  } 
+  const handleGlobalCursorMove = (gcmove: number | undefined) => {
+    if (gcmove === undefined) return;
+    setCursorX(gcmove);
+  };
 
-  useListener(BusConstants.CURSOR_MOVE, handleGlobalCursorMove)
+  useListener(BusConstants.CURSOR_MOVE, handleGlobalCursorMove);
 
   return (
     <PaneWrapper
