@@ -1,6 +1,5 @@
 import { useRecoilValue } from "recoil";
 import { isDarkTheme } from "../../../../utils/types/blueprint/theme-utils";
-import { BusConstants } from "../../../../utils/types/bus/globalcursormove";
 import { blueprintThemeRepository } from "../../../../utils/recoil/atoms";
 import PaneWrapper from "../PaneWrapper";
 import {
@@ -13,7 +12,13 @@ import {
 } from "victory";
 import { MouseEvent, useEffect, useRef, useState } from "react";
 import useDimensions from "react-cool-dimensions";
-import { useBus } from "react-bus";
+import {
+  pixelsToDomain,
+  domainToPixels,
+} from "../../../../utils/domain/domain-utils";
+import useBus, { EventAction, dispatch } from "use-bus";
+import { CURSOR_MOVE_EVENT } from "../../../../utils/bus/bus-constants";
+import { CursorMoveEventPayload } from "../../../../utils/types/bus/cursor-move-event-payload";
 
 const leftPadding = 50;
 const rightPadding = 20;
@@ -25,32 +30,6 @@ type PointerIcon = "default" | "ew-resize";
 interface AnalogPaneProps {
   viewId: string;
 }
-
-const pixelsToDomain = (
-  pixels: number,
-  minPixels: number,
-  maxPixels: number,
-  minDomain: number,
-  maxDomain: number
-) => {
-  return (
-    ((pixels - minPixels) / (maxPixels - minPixels)) * (maxDomain - minDomain) +
-    minDomain
-  );
-};
-
-const domainToPixels = (
-  domain: number,
-  minDomain: number,
-  maxDomain: number,
-  minPixels: number,
-  maxPixels: number
-) => {
-  return (
-    ((domain - minDomain) / (maxDomain - minDomain)) * (maxPixels - minPixels) +
-    minPixels
-  );
-};
 
 const AnalogPane = (props: AnalogPaneProps) => {
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
@@ -68,12 +47,29 @@ const AnalogPane = (props: AnalogPaneProps) => {
   const [pointerIcon, setPointerIcon] = useState("default" as PointerIcon);
   const paneRef = useRef<HTMLDivElement | null>(null);
 
-  const bus = useBus();
+  const dispatchCursorMoveEvent = (x: number) => {
+    dispatch({
+      type: CURSOR_MOVE_EVENT,
+      payload: {
+        x: x,
+        viewId: props.viewId,
+      } as CursorMoveEventPayload,
+    });
+  };
+
+  useBus(
+    CURSOR_MOVE_EVENT,
+    (event: EventAction) => {
+      setCursorX(event.payload.cursorX);
+    },
+    [setCursorX]
+  );
 
   useEffect(() => {
     return () => {
       unobserve();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const hookCursor = () => {
@@ -84,13 +80,6 @@ const AnalogPane = (props: AnalogPaneProps) => {
     if (cursorIsHooked) {
       setCursorIsHooked(false);
     }
-  };
-
-  const handleGlobalCursorMove = (x: number | undefined) => {
-    if (x === undefined) {
-      return;
-    }
-    setCursorX(x);
   };
 
   const handleZoomDomainChange = (domain: {
@@ -130,13 +119,9 @@ const AnalogPane = (props: AnalogPaneProps) => {
       graphXMax
     );
 
-    console.log(x);
-
-    // bus.emit(BusConstants.CURSOR_MOVE, x);
+    dispatchCursorMoveEvent(x);
     setCursorX(x);
   };
-
-  // useListener(BusConstants.CURSOR_MOVE, handleGlobalCursorMove);
 
   return (
     <PaneWrapper
@@ -147,19 +132,6 @@ const AnalogPane = (props: AnalogPaneProps) => {
       }}
       onMouseLeave={() => {
         unhookCursor();
-      }}
-      onMouseDown={(e) => {
-        const relativeDomain = pixelsToDomain(
-          e.nativeEvent.offsetX,
-          leftPadding,
-          width - rightPadding,
-          zoomDomain.x[0] as number,
-          zoomDomain.x[1] as number
-        );
-
-        if (Math.abs(relativeDomain - cursorX) < 0.05) {
-          hookCursor();
-        }
       }}
       onMouseUp={() => {
         unhookCursor();
@@ -268,30 +240,6 @@ const AnalogPane = (props: AnalogPaneProps) => {
           samples={100}
           y={(d) => 2.3 * Math.sin(0.33 * Math.PI + 10 * Math.PI * d.x)}
         />
-        {/* <VictoryLine
-          groupComponent={<CanvasGroup />}
-          x={() => cursorX}
-          style={{
-            data: {
-              stroke: "green",
-              strokeWidth: 8,
-              cursor: pointerIcon,
-            },
-          }}
-          events={[
-            {
-              target: "data",
-              eventHandlers: {
-                onMouseEnter: () => {
-                  setPointerIcon("ew-resize");
-                },
-                onMouseLeave: () => {
-                  setPointerIcon("default");
-                },
-              },
-            },
-          ]}
-        /> */}
       </VictoryChart>
     </PaneWrapper>
   );
