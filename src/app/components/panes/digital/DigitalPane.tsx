@@ -15,7 +15,15 @@ import {
 import { MouseEvent } from "react";
 import { useBus, useListener } from "react-bus";
 import { BusConstants } from "../../../../utils/types/bus/globalcursormove";
+import styled from "styled-components";
+import { max } from "lodash";
 
+const VerticalLine = styled.div`
+  position: absolute;
+  height: 100%;
+  width: 1px;
+  background-color: red;
+`;
 const leftPadding = 50;
 const rightPadding = 20;
 
@@ -32,24 +40,40 @@ const pixelsToDomain = (
   minDomain: number,
   maxDomain: number
 ) => {
+  console.log(
+    "pixels: " +
+      pixels +
+      " minPixels: " +
+      minPixels +
+      " \n maxPixels: " +
+      maxPixels +
+      " maxDomain: " +
+      maxDomain +
+      " minDomain: " +
+      minDomain +
+      "\n Answer: " +
+      ((pixels - minPixels) / (maxPixels - minPixels)) *
+        (maxDomain - minDomain) +
+      minDomain
+  );
   return (
     ((pixels - minPixels) / (maxPixels - minPixels)) * (maxDomain - minDomain) +
     minDomain
   );
 };
 
-// const domainToPixels = (
-//   domain: number,
-//   minDomain: number,
-//   maxDomain: number,
-//   minPixels: number,
-//   maxPixels: number
-// ) => {
-//   return (
-//     ((domain - minDomain) / (maxDomain - minDomain)) * (maxPixels - minPixels) +
-//     minPixels
-//   );
-// };
+const domainToPixels = (
+  domain: number,
+  minDomain: number,
+  maxDomain: number,
+  minPixels: number,
+  maxPixels: number
+) => {
+  return (
+    ((domain - minDomain) / (maxDomain - minDomain)) * (maxPixels - minPixels) +
+    minPixels
+  );
+};
 
 const DigitalPane = (props: DigitalPaneProps) => {
   //console.log(props.viewId);
@@ -155,8 +179,9 @@ const DigitalPane = (props: DigitalPaneProps) => {
     const graphXMin: number = zoomDomain.y[0] as number;
     const graphXMax: number = zoomDomain.y[1] as number;
 
+    console.log("this one");
     const x = pixelsToDomain(
-      mousePixelsOffsetX,
+      e.nativeEvent.x,
       graphXMinPixels,
       graphXMaxPixels,
       graphXMin,
@@ -178,7 +203,6 @@ const DigitalPane = (props: DigitalPaneProps) => {
     <PaneWrapper
       $isDark={isDarkTheme(blueprintTheme)}
       ref={observe}
-      // onMouseMove={handleMouseMove}
       onMouseLeave={() => {
         unhookCursor();
         setInitialPositionX(null);
@@ -188,6 +212,8 @@ const DigitalPane = (props: DigitalPaneProps) => {
       }}
       // On mouse down, store the initial position and domain
       onMouseDown={(e) => {
+        e.stopPropagation();
+
         const relativeDomain = pixelsToDomain(
           e.nativeEvent.offsetX,
           leftPadding,
@@ -196,26 +222,52 @@ const DigitalPane = (props: DigitalPaneProps) => {
           zoomDomain.y[1] as number
         );
 
-        if (Math.abs(relativeDomain - cursorX) < 0.05) hookCursor();
-        else {
-          setInitialPositionX(e.clientX);
-          setInitialDomainX(zoomDomain.y);
-          setInitialPositionY(e.clientY);
-          setInitialDomainY(zoomDomain.x);
+        if (Math.abs(relativeDomain - cursorX) < 0.05) {
+          hookCursor();
         }
       }}
       // On mouse up, clear the initial position and domain
       onMouseUp={() => {
+        console.log(cursorX);
         //console.log("MOUSE UP");
         unhookCursor();
-        setInitialPositionX(null);
-        setInitialDomainX(null);
-        setInitialPositionY(null);
-        setInitialDomainY(null);
       }}
       // On mouse move, if the mouse is down, update the domain
       onMouseMove={handleMouseMove}
     >
+      <div
+        onMouseDown={(e) => {
+          e.stopPropagation();
+          hookCursor();
+        }}
+        onMouseEnter={() => {
+          setPointerIcon("ew-resize");
+        }}
+        onMouseLeave={() => {
+          setPointerIcon("default");
+        }}
+        style={{
+          cursor: pointerIcon,
+          display:
+            cursorX >= (zoomDomain.y[0] as number) &&
+            cursorX <= (zoomDomain.y[1] as number)
+              ? "block"
+              : "none",
+          position: "absolute",
+          left: `${domainToPixels(
+            cursorX + -0.07, // the .07 solves some sort of issue with either rounding or an offset not accounted for somewhere.
+            zoomDomain.y[0] as number,
+            zoomDomain.y[1] as number,
+            leftPadding,
+            width - rightPadding
+          )}px`,
+          top: "0px",
+          height: "100%",
+          width: "6px",
+          backgroundColor: "red",
+          zIndex: 1,
+        }}
+      />
       <VictoryChart
         width={width}
         height={height}
@@ -235,7 +287,7 @@ const DigitalPane = (props: DigitalPaneProps) => {
         groupComponent={<CanvasGroup />}
         containerComponent={
           <VictoryZoomContainer // zoom and pan
-            allowPan={false}
+            allowPan={true}
             zoomDomain={zoomDomain}
             onZoomDomainChange={
               (domain) => handleZoomDomainChange(domain) //setZoomDomain(domain as { x: DomainTuple; y: DomainTuple })
@@ -259,7 +311,8 @@ const DigitalPane = (props: DigitalPaneProps) => {
             { x: 5, y0: 2, y: 8 },
           ]}
         />
-        <VictoryLine
+
+        {/* <VictoryLine
           groupComponent={<CanvasGroup />}
           y={() => cursorX}
           style={{
@@ -282,7 +335,7 @@ const DigitalPane = (props: DigitalPaneProps) => {
               },
             },
           ]}
-        />
+        /> */}
       </VictoryChart>
     </PaneWrapper>
   );
