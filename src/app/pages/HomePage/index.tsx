@@ -6,7 +6,7 @@ import {
   updateTree,
 } from "react-mosaic-component";
 import "react-mosaic-component/react-mosaic-component.css";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import {
   initializeTiles,
   renderTile,
@@ -21,13 +21,11 @@ import styled from "styled-components";
 import { THEMES } from "../../../utils/types/mosaic/theme";
 import { addToTopRight, getPathById } from "../../../utils/mosaic/leaf-utils";
 import EmptyMosaicInfo from "../../components/empty/EmptyMosaicInfo";
-import { Provider as BusProvider } from 'react-bus'
 
 export function HomePage() {
   const [repository, setRepository] = useRecoilState(mosaicRepository);
   const [mosaicState, setMosaicState] = useRecoilState(mosaicStateAtom);
   const blueprintTheme = useRecoilValue(blueprintThemeRepository);
-
   const [shouldInitializeTiles, setShouldInitializeTiles] =
     useState<boolean>(false);
 
@@ -66,6 +64,7 @@ export function HomePage() {
 
     // update the mosaic state with the initialized layout
     setMosaicState({ ...mosaicState, currentNode: node });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldInitializeTiles]);
 
   /**
@@ -139,7 +138,6 @@ export function HomePage() {
 
   return (
     <>
-    <BusProvider>
       <CenteredFlexWrapper>
         {/* If there are any available tiles, show them with the mosaic wrapper */}
         {repository.length > 0 ? (
@@ -172,7 +170,6 @@ export function HomePage() {
           />
         )}
       </CenteredFlexWrapper>
-      </BusProvider>
     </>
   );
 }

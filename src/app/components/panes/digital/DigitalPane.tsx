@@ -1,23 +1,26 @@
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { blueprintThemeRepository } from "../../../../utils/recoil/atoms";
 import { isDarkTheme } from "../../../../utils/types/blueprint/theme-utils";
 import PaneWrapper from "../PaneWrapper";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useDimensions from "react-cool-dimensions";
 import {
   CanvasGroup,
   DomainTuple,
   VictoryBar,
   VictoryChart,
-  VictoryLine,
   VictoryZoomContainer,
 } from "victory";
 import { MouseEvent } from "react";
-import { useBus, useListener } from "react-bus";
-import { BusConstants } from "../../../../utils/types/bus/globalcursormove";
-
+import {
+  domainToPixels,
+  pixelsToDomain,
+} from "../../../../utils/domain/domain-utils";
+import { cursorsState as cursorsStateAtom } from "../../../../utils/recoil/atoms";
 const leftPadding = 50;
 const rightPadding = 20;
+const minDomainX = 0;
+const maxDomainX = 6;
 
 type PointerIcon = "default" | "ew-resize";
 
@@ -25,133 +28,80 @@ interface DigitalPaneProps {
   viewId: string;
 }
 
-const pixelsToDomain = (
-  pixels: number,
-  minPixels: number,
-  maxPixels: number,
-  minDomain: number,
-  maxDomain: number
-) => {
-  return (
-    ((pixels - minPixels) / (maxPixels - minPixels)) * (maxDomain - minDomain) +
-    minDomain
-  );
-};
-
-// const domainToPixels = (
-//   domain: number,
-//   minDomain: number,
-//   maxDomain: number,
-//   minPixels: number,
-//   maxPixels: number
-// ) => {
-//   return (
-//     ((domain - minDomain) / (maxDomain - minDomain)) * (maxPixels - minPixels) +
-//     minPixels
-//   );
-// };
-
 const DigitalPane = (props: DigitalPaneProps) => {
-  //console.log(props.viewId);
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
 
   const { observe, unobserve, width, height } = useDimensions();
+  const [zoomDomain, setZoomDomain] = useState({
+    x: [minDomainX, maxDomainX],
+    y: [0, 10],
+  } as {
+    x: DomainTuple;
+    y: DomainTuple;
+  });
+  const [hookedCursor, setHookedCursor] = useState<string | null>(null);
+  const [pointerIcon, setPointerIcon] = useState("default" as PointerIcon);
+  const [cursorsState, setCursorsState] = useRecoilState(cursorsStateAtom);
+
+  const paneRef = useRef<HTMLDivElement | null>(null);
+
+  const updateCursorsState = (cursorId: string, x: number) => {
+    setCursorsState((oldCursorsState) => {
+      const newCursorsState = oldCursorsState.map((cursorState) => {
+        if (cursorState.id === cursorId) {
+          return {
+            ...cursorState,
+            x: x,
+          };
+        } else {
+          return cursorState;
+        }
+      });
+
+      return newCursorsState;
+    });
+  };
 
   useEffect(() => {
     return () => {
       unobserve();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const [cursorIsHooked, setCursorIsHooked] = useState(false);
-  const [cursorX, setCursorX] = useState(5);
-  const [zoomDomain, setZoomDomain] = useState({ x: [0, 6], y: [0, 10] } as {
-    x: DomainTuple;
-    y: DomainTuple;
-  });
-  const [pointerIcon, setPointerIcon] = useState("default" as PointerIcon);
-  const [canPan] = useState(true);
-
-  const [initialPositionX, setInitialPositionX] = useState<number | null>(null);
-  const [initialDomainX, setInitialDomainX] = useState<DomainTuple | null>(
-    null
-  );
-  const [initialPositionY, setInitialPositionY] = useState<number | null>(null);
-  const [initialDomainY, setInitialDomainY] = useState<DomainTuple | null>(
-    null
-  );
-  const bus = useBus();
-
-  const hookCursor = () => {
-    setCursorIsHooked(true);
-    //console.log("cursor hooked");
+  const hookCursor = (cursorId: string) => {
+    setHookedCursor(cursorId);
   };
 
   const unhookCursor = () => {
-    if (cursorIsHooked) {
-      setCursorIsHooked(false);
-      //console.log("cursor unhooked");
-    }
+    setHookedCursor(null);
   };
 
   const handleZoomDomainChange = (domain: {
     x: DomainTuple;
     y: DomainTuple;
   }) => {
-    if (cursorIsHooked) {
+    if (hookedCursor) {
       return;
-    } // should be removable
+    }
     setZoomDomain(domain);
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    if (
-      initialPositionX !== null &&
-      initialDomainX !== null &&
-      initialPositionY !== null &&
-      initialDomainY !== null &&
-      canPan
-    ) {
-      const dy = e.clientY - initialPositionY;
-      const dx = e.clientX - initialPositionX;
-      const domainWidth =
-        (initialDomainX[1] as number) - (initialDomainX[0] as number);
-      const domainHeight =
-        (initialDomainY[1] as number) - (initialDomainY[0] as number);
-      let domainDx = (domainWidth * dx) / width;
-      let domainDy = (-1 * (domainHeight * dy)) / height;
-
-      if ((initialDomainX[0] as number) - domainDx < 0)
-        domainDx = initialDomainX[0] as number;
-      if ((initialDomainY[0] as number) - domainDy < 0)
-        domainDy = initialDomainY[0] as number;
-
-      console.table({ dy, dx, domainWidth, domainHeight, domainDx, domainDy });
-
-      setZoomDomain({
-        y: [
-          // change x to y
-          (initialDomainX[0] as number) - domainDx,
-          (initialDomainX[1] as number) - domainDx,
-        ],
-        x: [
-          // change x to y
-          (initialDomainY[0] as number) - domainDy,
-          (initialDomainY[1] as number) - domainDy,
-        ], // change y to x
-      });
-    }
-
-    if (!cursorIsHooked) {
+    if (!hookedCursor) {
       return;
     }
 
     const paneWidthPixels = width;
     const graphXMinPixels = leftPadding;
     const graphXMaxPixels = paneWidthPixels - rightPadding;
-    const mousePixelsOffsetX = e.nativeEvent.offsetX;
 
-    // remember, x and y are flipped because it's a horizontal chart
+    const bounding = paneRef.current?.getBoundingClientRect();
+    if (!bounding) {
+      return;
+    }
+
+    const mousePixelsOffsetX = (e.clientX - bounding?.left) as number;
     const graphXMin: number = zoomDomain.y[0] as number;
     const graphXMax: number = zoomDomain.y[1] as number;
 
@@ -163,59 +113,68 @@ const DigitalPane = (props: DigitalPaneProps) => {
       graphXMax
     );
 
-    bus.emit(BusConstants.CURSOR_MOVE, x);
-    setCursorX(x);
+    updateCursorsState(hookedCursor, x);
   };
-
-  const handleGlobalCursorMove = (gcmove: number | undefined) => {
-    if (gcmove === undefined) return;
-    setCursorX(gcmove);
-  };
-
-  useListener(BusConstants.CURSOR_MOVE, handleGlobalCursorMove);
 
   return (
     <PaneWrapper
       $isDark={isDarkTheme(blueprintTheme)}
-      ref={observe}
-      // onMouseMove={handleMouseMove}
+      ref={(el) => {
+        observe(el); // set the target element for measuring
+        paneRef.current = el; // share the element for other purposes
+      }}
       onMouseLeave={() => {
         unhookCursor();
-        setInitialPositionX(null);
-        setInitialDomainX(null);
-        setInitialPositionY(null);
-        setInitialDomainY(null);
       }}
-      // On mouse down, store the initial position and domain
-      onMouseDown={(e) => {
-        const relativeDomain = pixelsToDomain(
-          e.nativeEvent.offsetX,
-          leftPadding,
-          width - rightPadding,
-          zoomDomain.y[0] as number,
-          zoomDomain.y[1] as number
-        );
-
-        if (Math.abs(relativeDomain - cursorX) < 0.05) hookCursor();
-        else {
-          setInitialPositionX(e.clientX);
-          setInitialDomainX(zoomDomain.y);
-          setInitialPositionY(e.clientY);
-          setInitialDomainY(zoomDomain.x);
-        }
-      }}
-      // On mouse up, clear the initial position and domain
       onMouseUp={() => {
-        //console.log("MOUSE UP");
         unhookCursor();
-        setInitialPositionX(null);
-        setInitialDomainX(null);
-        setInitialPositionY(null);
-        setInitialDomainY(null);
       }}
-      // On mouse move, if the mouse is down, update the domain
       onMouseMove={handleMouseMove}
     >
+      {cursorsState
+        .filter((cursor) => {
+          return cursor.x !== null && cursor.x !== undefined;
+        })
+        .map((cursor) => {
+          if (!cursor.x) {
+            return null;
+          }
+          return (
+            <div
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                hookCursor(cursor.id);
+              }}
+              onMouseEnter={() => {
+                setPointerIcon("ew-resize");
+              }}
+              onMouseLeave={() => {
+                setPointerIcon("default");
+              }}
+              style={{
+                cursor: pointerIcon,
+                display:
+                  cursor.x >= (zoomDomain.y[0] as number) &&
+                  cursor.x <= (zoomDomain.y[1] as number)
+                    ? "block"
+                    : "none",
+                position: "absolute",
+                left: `${domainToPixels(
+                  cursor.x,
+                  zoomDomain.y[0] as number,
+                  zoomDomain.y[1] as number,
+                  leftPadding,
+                  width - rightPadding
+                )}px`,
+                top: "0px",
+                height: "100%",
+                width: "6px",
+                backgroundColor: cursor.color,
+                zIndex: 1,
+              }}
+            />
+          );
+        })}
       <VictoryChart
         width={width}
         height={height}
@@ -234,12 +193,10 @@ const DigitalPane = (props: DigitalPaneProps) => {
         maxDomain={{ y: 10, x: 6 }}
         groupComponent={<CanvasGroup />}
         containerComponent={
-          <VictoryZoomContainer // zoom and pan
-            allowPan={false}
+          <VictoryZoomContainer
+            allowPan={true}
             zoomDomain={zoomDomain}
-            onZoomDomainChange={
-              (domain) => handleZoomDomainChange(domain) //setZoomDomain(domain as { x: DomainTuple; y: DomainTuple })
-            }
+            onZoomDomainChange={(domain) => handleZoomDomainChange(domain)}
             responsive={true}
           />
         }
@@ -257,30 +214,6 @@ const DigitalPane = (props: DigitalPaneProps) => {
             { x: 3, y0: 2, y: 8 },
             { x: 4, y0: 1, y: 6 },
             { x: 5, y0: 2, y: 8 },
-          ]}
-        />
-        <VictoryLine
-          groupComponent={<CanvasGroup />}
-          y={() => cursorX}
-          style={{
-            data: {
-              stroke: "red",
-              strokeWidth: 8,
-              cursor: pointerIcon,
-            },
-          }}
-          events={[
-            {
-              target: "data",
-              eventHandlers: {
-                onMouseEnter: () => {
-                  setPointerIcon("ew-resize");
-                },
-                onMouseLeave: () => {
-                  setPointerIcon("default");
-                },
-              },
-            },
           ]}
         />
       </VictoryChart>

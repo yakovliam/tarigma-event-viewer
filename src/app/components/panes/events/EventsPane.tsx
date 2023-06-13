@@ -15,21 +15,17 @@ const TemporaryTextWrapper = styled(Text)`
   flex-grow: 1;
   height: 100%;
   width: 100%;
-
   gap: 10px;
-
   align-items: center;
   justify-content: center;
 `;
 
 const EventsPane = (props: EventsPaneProps) => {
-  console.log(props.viewId);
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
   return (
     <PaneWrapper $isDark={isDarkTheme(blueprintTheme)}>
       <TemporaryTextWrapper>
-        Events Pane
-        <Tag>Implementation</Tag>
+        Events Pane <Tag>Implementation</Tag>
       </TemporaryTextWrapper>
     </PaneWrapper>
   );

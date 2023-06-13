@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import { HomePage } from "./pages/HomePage";
-import { NotFoundPage } from "./components/NotFoundPage";
 import {
   Alignment,
   Button,
@@ -71,8 +70,7 @@ function App() {
           </Navbar>
         </NavbarWrapper>
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="*" element={<NotFoundPage />} />
+          <Route path="*" element={<HomePage />} />
         </Routes>
       </AppWrapper>
     </BrowserRouter>
