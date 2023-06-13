@@ -6,7 +6,7 @@ import {
   updateTree,
 } from "react-mosaic-component";
 import "react-mosaic-component/react-mosaic-component.css";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import {
   initializeTiles,
   renderTile,
@@ -26,7 +26,6 @@ export function HomePage() {
   const [repository, setRepository] = useRecoilState(mosaicRepository);
   const [mosaicState, setMosaicState] = useRecoilState(mosaicStateAtom);
   const blueprintTheme = useRecoilValue(blueprintThemeRepository);
-
   const [shouldInitializeTiles, setShouldInitializeTiles] =
     useState<boolean>(false);
 

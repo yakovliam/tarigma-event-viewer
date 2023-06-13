@@ -25,7 +25,7 @@ const EventsPane = (props: EventsPaneProps) => {
   return (
     <PaneWrapper $isDark={isDarkTheme(blueprintTheme)}>
       <TemporaryTextWrapper>
-        Events Pane (viewId: {props.viewId})<Tag>Implementation</Tag>
+        Events Pane <Tag>Implementation</Tag>
       </TemporaryTextWrapper>
     </PaneWrapper>
   );

@@ -1,4 +1,4 @@
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { isDarkTheme } from "../../../../utils/types/blueprint/theme-utils";
 import { blueprintThemeRepository } from "../../../../utils/recoil/atoms";
 import PaneWrapper from "../PaneWrapper";
@@ -16,9 +16,7 @@ import {
   pixelsToDomain,
   domainToPixels,
 } from "../../../../utils/domain/domain-utils";
-import useBus, { EventAction, dispatch } from "use-bus";
-import { CURSOR_MOVE_EVENT } from "../../../../utils/bus/bus-constants";
-import { CursorMoveEventPayload } from "../../../../utils/types/bus/cursor-move-event-payload";
+import { cursorsState as cursorsStateAtom } from "../../../../utils/recoil/atoms";
 
 const leftPadding = 50;
 const rightPadding = 20;
@@ -35,7 +33,6 @@ const AnalogPane = (props: AnalogPaneProps) => {
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
 
   const { observe, unobserve, width, height } = useDimensions();
-  const [cursorX, setCursorX] = useState(5);
   const [zoomDomain, setZoomDomain] = useState({
     x: [minDomainX, maxDomainX],
     y: [-2.5, 2.5],
@@ -43,27 +40,28 @@ const AnalogPane = (props: AnalogPaneProps) => {
     x: DomainTuple;
     y: DomainTuple;
   });
-  const [cursorIsHooked, setCursorIsHooked] = useState(false);
+  const [hookedCursor, setHookedCursor] = useState<string | null>(null);
   const [pointerIcon, setPointerIcon] = useState("default" as PointerIcon);
+  const [cursorsState, setCursorsState] = useRecoilState(cursorsStateAtom);
+
   const paneRef = useRef<HTMLDivElement | null>(null);
 
-  const dispatchCursorMoveEvent = (x: number) => {
-    dispatch({
-      type: CURSOR_MOVE_EVENT,
-      payload: {
-        x: x,
-        viewId: props.viewId,
-      } as CursorMoveEventPayload,
+  const updateCursorsState = (cursorId: string, x: number) => {
+    setCursorsState((oldCursorsState) => {
+      const newCursorsState = oldCursorsState.map((cursorState) => {
+        if (cursorState.id === cursorId) {
+          return {
+            ...cursorState,
+            x: x,
+          };
+        } else {
+          return cursorState;
+        }
+      });
+
+      return newCursorsState;
     });
   };
-
-  useBus(
-    CURSOR_MOVE_EVENT,
-    (event: EventAction) => {
-      setCursorX(event.payload.cursorX);
-    },
-    [setCursorX]
-  );
 
   useEffect(() => {
     return () => {
@@ -72,28 +70,26 @@ const AnalogPane = (props: AnalogPaneProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const hookCursor = () => {
-    setCursorIsHooked(true);
+  const hookCursor = (cursorId: string) => {
+    setHookedCursor(cursorId);
   };
 
   const unhookCursor = () => {
-    if (cursorIsHooked) {
-      setCursorIsHooked(false);
-    }
+    setHookedCursor(null);
   };
 
   const handleZoomDomainChange = (domain: {
     x: DomainTuple;
     y: DomainTuple;
   }) => {
-    if (cursorIsHooked) {
+    if (hookedCursor) {
       return;
     } // should be removable
     setZoomDomain(domain);
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    if (!cursorIsHooked) {
+    if (!hookedCursor) {
       return;
     }
 
@@ -119,8 +115,8 @@ const AnalogPane = (props: AnalogPaneProps) => {
       graphXMax
     );
 
-    dispatchCursorMoveEvent(x);
-    setCursorX(x);
+    const hookedCursorId: string = hookedCursor as string;
+    updateCursorsState(hookedCursorId, x);
   };
 
   return (
@@ -138,39 +134,51 @@ const AnalogPane = (props: AnalogPaneProps) => {
       }}
       onMouseMove={handleMouseMove}
     >
-      <div
-        onMouseDown={(e) => {
-          e.stopPropagation();
-          hookCursor();
-        }}
-        onMouseEnter={() => {
-          setPointerIcon("ew-resize");
-        }}
-        onMouseLeave={() => {
-          setPointerIcon("default");
-        }}
-        style={{
-          cursor: pointerIcon,
-          display:
-            cursorX >= (zoomDomain.x[0] as number) &&
-            cursorX <= (zoomDomain.x[1] as number)
-              ? "block"
-              : "none",
-          position: "absolute",
-          left: `${domainToPixels(
-            cursorX,
-            zoomDomain.x[0] as number,
-            zoomDomain.x[1] as number,
-            leftPadding,
-            width - rightPadding
-          )}px`,
-          top: "0px",
-          height: "100%",
-          width: "6px",
-          backgroundColor: "red",
-          zIndex: 1,
-        }}
-      />
+      {cursorsState
+        .filter((cursor) => {
+          return cursor.x !== null && cursor.x !== undefined;
+        })
+        .map((cursor) => {
+          if (!cursor.x) {
+            return null;
+          }
+          return (
+            <div
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                hookCursor(cursor.id);
+              }}
+              onMouseEnter={() => {
+                setPointerIcon("ew-resize");
+              }}
+              onMouseLeave={() => {
+                setPointerIcon("default");
+              }}
+              style={{
+                cursor: pointerIcon,
+                display:
+                  cursor.x >= (zoomDomain.x[0] as number) &&
+                  cursor.x <= (zoomDomain.x[1] as number)
+                    ? "block"
+                    : "none",
+                position: "absolute",
+                left: `${domainToPixels(
+                  cursor.x,
+                  zoomDomain.x[0] as number,
+                  zoomDomain.x[1] as number,
+                  leftPadding,
+                  width - rightPadding
+                )}px`,
+                top: "0px",
+                height: "100%",
+                width: "6px",
+                backgroundColor: cursor.color,
+                zIndex: 1,
+              }}
+            />
+          );
+        })}
+
       <VictoryChart
         width={width}
         height={height}
