@@ -5,6 +5,10 @@ import {
   Alignment,
   Button,
   Classes,
+  Intent,
+  Menu,
+  MenuDivider,
+  MenuItem,
   Navbar,
   NavbarDivider,
   NavbarGroup,
@@ -14,6 +18,8 @@ import { styled } from "styled-components";
 import { useRecoilState } from "recoil";
 import { blueprintThemeRepository } from "../utils/recoil/atoms";
 import { blueprintThemeClassName } from "../utils/types/blueprint/theme-utils";
+import { Classes as PopoverClasses, Popover2 } from "@blueprintjs/popover2";
+import { userFriendlyTypeMap } from "../utils/types/mosaic/tiles";
 
 const AppWrapper = styled.div`
   display: flex;
@@ -47,25 +53,64 @@ function App() {
           <Navbar>
             <NavbarGroup align={Alignment.LEFT}>
               <NavbarHeading>Tarigma Event Viewer</NavbarHeading>
-              <NavbarDivider />
-              <Button className={Classes.MINIMAL} icon="home" text="GEM Home" />
-              <Button
-                className={Classes.MINIMAL}
-                icon="document"
-                text="Files"
-              />
+            </NavbarGroup>
+            <NavbarGroup align={Alignment.RIGHT}>
+              <Popover2
+                placement="bottom"
+                enforceFocus={false}
+                content={
+                  <Menu>
+                    {userFriendlyTypeMap.map((type) => (
+                      <MenuItem
+                        key={type.key}
+                        icon={type.icon}
+                        text={type.name}
+                        onClick={() => console.log("Settings...")}
+                      />
+                    ))}
+                  </Menu>
+                }
+              >
+                <Button
+                  minimal
+                  icon="add-column-right"
+                  text="Add Pane"
+                  rightIcon="caret-down"
+                  tabIndex={0}
+                />
+              </Popover2>
 
+              <Button minimal icon="symbol-diamond" text="GEM" />
               <Button
-                className={Classes.MINIMAL}
-                icon="database"
-                text="Event Collection"
-              />
-              <Button
-                className={Classes.MINIMAL}
+                minimal
                 icon="cog"
                 text="Toggle Theme"
                 onClick={toggleTheme}
               />
+              <NavbarDivider />
+              <Popover2
+                placement="bottom-end"
+                enforceFocus={false}
+                content={
+                  <Menu>
+                    <MenuItem icon="helper-management" text="Administration" />
+                    <MenuDivider />
+                    <MenuItem
+                      icon="cog"
+                      text="Preferences"
+                      onClick={() => console.log("Settings...")}
+                    />
+                  </Menu>
+                }
+              >
+                <Button
+                  minimal
+                  text="User"
+                  icon="user"
+                  rightIcon="caret-down"
+                  tabIndex={0}
+                />
+              </Popover2>
             </NavbarGroup>
           </Navbar>
         </NavbarWrapper>
