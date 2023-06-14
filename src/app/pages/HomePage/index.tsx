@@ -33,9 +33,12 @@ export function HomePage() {
    * Initialize the tile repository on first load.
    */
   useEffect(() => {
-    setRepository(initializeTiles());
+    if (!shouldInitializeTiles) {
+      console.log("initializing tiles");
+      setRepository(initializeTiles());
+    }
     setShouldInitializeTiles(true);
-  }, [setShouldInitializeTiles, setRepository]);
+  }, []);
 
   /**
    * Initialize the tiles AFTER the repository has been initialized.
@@ -144,7 +147,6 @@ export function HomePage() {
           <MosaicWithoutDragDropContext<string>
             className={THEMES[blueprintTheme]}
             renderTile={(id, path) => {
-              console.log("id", id);
               const element: JSX.Element | undefined = repository.find(
                 (tile) => tile.viewId === id
               )?.element;

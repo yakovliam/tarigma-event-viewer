@@ -3,6 +3,7 @@ import MosaicState from "../../types/mosaic/state";
 import { BlueprintTheme } from "../../types/blueprint/theme";
 import { MosaicTilesRepository } from "../../types/mosaic/tiles";
 import CursorState from "../../types/cursor/cursor-state";
+import Comtrade from "../../types/data/comtrade/comtrade";
 
 const defaultBlueprintTheme: BlueprintTheme = "Blueprint" as BlueprintTheme;
 const blueprintThemeRepository = atom({
@@ -41,9 +42,15 @@ const cursorsState = atom({
   ] as CursorState[],
 });
 
+const eventsState = atom({
+  key: "eventsState",
+  default: [] as Comtrade[],
+});
+
 export {
   mosaicRepository,
   mosaicState,
   blueprintThemeRepository,
   cursorsState,
+  eventsState,
 };
