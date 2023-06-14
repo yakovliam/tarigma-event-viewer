@@ -1,6 +1,6 @@
 import { Colors, NonIdealState, Button } from "@blueprintjs/core";
 import styled from "styled-components";
-import { isDarkTheme } from "../../../utils/types/blueprint/theme-utils";
+import { isDarkTheme } from "../../../types/blueprint/theme-utils";
 import { useRecoilValue } from "recoil";
 import { blueprintThemeRepository } from "../../../utils/recoil/atoms";
 import { v4 as uuidv4 } from "uuid";

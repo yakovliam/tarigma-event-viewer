@@ -1,6 +1,6 @@
 import { useRecoilState, useRecoilValue } from "recoil";
 import { blueprintThemeRepository } from "../../../../utils/recoil/atoms";
-import { isDarkTheme } from "../../../../utils/types/blueprint/theme-utils";
+import { isDarkTheme } from "../../../../types/blueprint/theme-utils";
 import PaneWrapper from "../PaneWrapper";
 import { useEffect, useRef, useState } from "react";
 import useDimensions from "react-cool-dimensions";

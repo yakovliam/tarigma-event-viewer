@@ -5,9 +5,9 @@ import {
   MosaicWindow,
   SplitButton,
 } from "react-mosaic-component";
-import { MosaicTilesRepository } from "../types/mosaic/tiles";
+import { MosaicTilesRepository } from "../../types/mosaic/tiles";
 import { v4 as uuidv4 } from "uuid";
-import { MosaicTile } from "../types/mosaic/tile";
+import { MosaicTile } from "../../types/mosaic/tile";
 import { Button } from "@blueprintjs/core";
 
 export const initializeTiles = (): MosaicTilesRepository => {

@@ -1,8 +1,8 @@
 import AnalogPane from "../../app/components/panes/analog/AnalogPane";
 import DigitalPane from "../../app/components/panes/digital/DigitalPane";
 import EventsPane from "../../app/components/panes/events/EventsPane";
-import { MosaicTile } from "../types/mosaic/tile";
-import { MosaicTileType } from "../types/mosaic/tiles";
+import { MosaicTile } from "../../types/mosaic/tile";
+import { MosaicTileType } from "../../types/mosaic/tiles";
 import { v4 as uuidv4 } from "uuid";
 
 export const createInstance = (

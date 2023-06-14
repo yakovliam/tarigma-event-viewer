@@ -1,8 +1,8 @@
 import { atom } from "recoil";
-import MosaicState from "../types/mosaic/state";
-import { BlueprintTheme } from "../types/blueprint/theme";
-import { MosaicTilesRepository } from "../types/mosaic/tiles";
-import CursorState from "../types/cursor/cursor-state";
+import MosaicState from "../../types/mosaic/state";
+import { BlueprintTheme } from "../../types/blueprint/theme";
+import { MosaicTilesRepository } from "../../types/mosaic/tiles";
+import CursorState from "../../types/cursor/cursor-state";
 
 const defaultBlueprintTheme: BlueprintTheme = "Blueprint" as BlueprintTheme;
 const blueprintThemeRepository = atom({

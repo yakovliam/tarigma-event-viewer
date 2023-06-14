@@ -1,5 +1,5 @@
 import { useRecoilState, useRecoilValue } from "recoil";
-import { isDarkTheme } from "../../../../utils/types/blueprint/theme-utils";
+import { isDarkTheme } from "../../../../types/blueprint/theme-utils";
 import { blueprintThemeRepository } from "../../../../utils/recoil/atoms";
 import PaneWrapper from "../PaneWrapper";
 import {

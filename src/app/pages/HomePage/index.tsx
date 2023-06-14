@@ -18,7 +18,7 @@ import {
 } from "../../../utils/recoil/atoms";
 import { createInstance } from "../../../utils/mosaic/tiles";
 import styled from "styled-components";
-import { THEMES } from "../../../utils/types/mosaic/theme";
+import { THEMES } from "../../../types/mosaic/theme";
 import { addToTopRight, getPathById } from "../../../utils/mosaic/leaf-utils";
 import EmptyMosaicInfo from "../../components/empty/EmptyMosaicInfo";
 

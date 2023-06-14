@@ -17,9 +17,9 @@ import {
 import { styled } from "styled-components";
 import { useRecoilState } from "recoil";
 import { blueprintThemeRepository } from "../utils/recoil/atoms";
-import { blueprintThemeClassName } from "../utils/types/blueprint/theme-utils";
+import { blueprintThemeClassName } from "../types/blueprint/theme-utils";
 import { Classes as PopoverClasses, Popover2 } from "@blueprintjs/popover2";
-import { userFriendlyTypeMap } from "../utils/types/mosaic/tiles";
+import { userFriendlyTypeMap } from "../types/mosaic/tiles";
 
 const AppWrapper = styled.div`
   display: flex;

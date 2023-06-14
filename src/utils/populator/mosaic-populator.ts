@@ -1,5 +1,5 @@
 import { MosaicNode } from "react-mosaic-component";
-import MosaicState from "../types/mosaic/state";
+import MosaicState from "../../types/mosaic/state";
 import { useRecoilValue } from "recoil";
 import {mosaicRepository} from "../recoil/atoms";
 
