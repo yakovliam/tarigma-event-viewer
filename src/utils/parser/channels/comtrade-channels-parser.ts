@@ -1,11 +1,11 @@
 import * as papa from 'papaparse';
 import { ParseResult } from 'papaparse';
-import AnalogChannel from '../../types/comtrade/channel/analog/analog-channel';
-import DigitalChannel from '../../types/comtrade/channel/digital/digital-channel';
-import TimestampedValue from '../../types/comtrade/channel/timestamped-value';
-import AnalogChannelInfo from '../../types/comtrade/config/analog-channel-info';
-import Config from '../../types/comtrade/config/config';
-import DigitalChannelInfo from '../../types/comtrade/config/digital-channel-info';
+import AnalogChannel from '../../../types/data/comtrade/channel/analog/analog-channel';
+import DigitalChannel from '../../../types/data/comtrade/channel/digital/digital-channel';
+import TimestampedValue from '../../../types/data/comtrade/channel/timestamped-value';
+import AnalogChannelInfo from '../../../types/data/comtrade/config/analog-channel-info';
+import Config from '../../../types/data/comtrade/config/config';
+import DigitalChannelInfo from '../../../types/data/comtrade/config/digital-channel-info';
 
 interface ParseChannelsReturnType {
   analogChannels: AnalogChannel[];
