@@ -1,4 +1,5 @@
 type AnalogChannelInfo = {
+  normal: ReactNode;
   /**
    * "An"
    * is the analog channel index number. Critical, numeric, integer, minimum length = 1 character,

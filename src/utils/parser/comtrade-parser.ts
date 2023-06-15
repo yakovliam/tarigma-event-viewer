@@ -8,12 +8,13 @@ import Config from "../../types/data/comtrade/config/config";
 
 const parseFileContentsToComtrade = (
   configContents: string,
-  headerContents: string | undefined,
+  headerContents: string,
   dataContents: string,
   incrementedEventId: number
 ): Comtrade => {
   // TODO actually parse header
-  const header: Header = headerContents ? parseHeaderContentsToHeader(headerContents) : {};
+  const header: Header =
+    headerContents === "" ? {} : parseHeaderContentsToHeader(headerContents);
 
   const config: Config = parseConfigContentsToConfig(configContents);
 

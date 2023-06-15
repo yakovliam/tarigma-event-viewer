@@ -16,7 +16,8 @@ import {
 import { styled } from "styled-components";
 import { eventsState as eventsStateAtom } from "../../../../utils/recoil/atoms";
 import Comtrade from "../../../../types/data/comtrade/comtrade";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import parseFileContentsToComtrade from "../../../../utils/parser/comtrade-parser";
 
 interface EventsPaneProps {
   viewId: string;
@@ -85,6 +86,8 @@ const EventsPane = (props: EventsPaneProps) => {
 
   const [accordionState, setAccordionState] = useState<AccordianState[]>([]);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     setAccordionState(
       eventsState.map((eventState) => {
@@ -96,15 +99,65 @@ const EventsPane = (props: EventsPaneProps) => {
     );
   }, [eventsState]);
 
-  const addEvent = () => {
-    setEventsState((oldEventsState: Comtrade[]) => {
-      return [
-        ...oldEventsState,
-        {
-          id: "event-" + (oldEventsState.length + 1),
-          eventId: oldEventsState.length + 1,
-        } as Comtrade,
-      ];
+  const getFileExtension = (filename: string): string =>
+    filename.substring(filename.lastIndexOf(".") + 1, filename.length) ||
+    filename;
+
+  const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("handleFileInput called");
+    const files = event.target.files;
+    if (files) {
+      addEvent(files);
+    }
+  };
+
+  const addEvent = (files: FileList) => {
+    console.log("add event");
+
+    let configContents = "";
+    let headerContents = "";
+    let dataContents = "";
+
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const fileContent = e.target?.result;
+        console.log(getFileExtension(file.name));
+        if (typeof fileContent === "string") {
+          switch (getFileExtension(file.name)) {
+            case "cfg":
+              configContents = fileContent;
+              break;
+            case "dat":
+              dataContents = fileContent;
+              break;
+            case "hdr":
+              headerContents = fileContent;
+              break;
+            default:
+              break;
+          }
+        }
+
+        if (configContents !== "" && dataContents !== "") {
+          const eventId = eventsState.length + 1;
+
+          // Call parseFileContentsToComtrade to get a new Comtrade object
+          const newEvent = parseFileContentsToComtrade(
+            configContents,
+            headerContents,
+            dataContents,
+            eventId
+          );
+
+          console.log(newEvent);
+
+          setEventsState((oldEventsState) => [...oldEventsState, newEvent]);
+        }
+      };
+
+      reader.readAsText(file);
     });
   };
 
@@ -118,11 +171,19 @@ const EventsPane = (props: EventsPaneProps) => {
             <Tag>{eventsState.length} loaded</Tag>
           </Navbar.Group>
           <Navbar.Group align={Alignment.RIGHT}>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileInput}
+              style={{ display: "none" }}
+              multiple
+              accept=".cfg, .dat, .hdr, .inf"
+            />
             <Button
               className={Classes.MINIMAL}
               icon="add"
               text="Add Event"
-              onClick={addEvent}
+              onClick={() => fileInputRef.current?.click()}
             />
           </Navbar.Group>
         </Navbar>
@@ -181,9 +242,15 @@ const EventsPane = (props: EventsPaneProps) => {
                 </Card>
                 <Collapse isOpen={accordionState[index]?.isOpen}>
                   <Card>
-                    <TemporaryTextWrapper>
-                      <Text>Event Settings</Text>
-                    </TemporaryTextWrapper>
+                    <Tag minimal round large>
+                      {event.config.stationName} {event.config.revisionYear}
+                      <br />
+                      Analog Channels:{" "}
+                      {event.config.channelsInfo.analogChannels}
+                      <br />
+                      Digital Channels:{" "}
+                      {event.config.channelsInfo.digitalChannels}
+                    </Tag>
                   </Card>
                 </Collapse>
               </div>
