@@ -133,7 +133,10 @@ const EventsPane = (props: EventsPaneProps) => {
                 <Card style={{ padding: 0 }}>
                   <EventControlsWrapper>
                     <Text>
-                      Event <Tag minimal round>{event.eventId}</Tag>
+                      Event{" "}
+                      <Tag minimal round>
+                        {event.eventId}
+                      </Tag>
                     </Text>
                     <EventControls>
                       <EventControl>
