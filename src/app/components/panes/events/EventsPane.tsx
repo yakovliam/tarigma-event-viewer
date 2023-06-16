@@ -17,6 +17,17 @@ import { styled } from "styled-components";
 import { eventsState as eventsStateAtom } from "../../../../utils/recoil/atoms";
 import Comtrade from "../../../../types/data/comtrade/comtrade";
 import { useEffect, useState } from "react";
+import {
+  EventControl,
+  EventControls,
+  EventControlsWrapper,
+  EventDetailsWrapper,
+  EventsListWrapper,
+  EventsNavGroup,
+  EventsNavWrapper,
+  EventsSettingsBar,
+} from "./events-wrappers";
+import useComtradeFileUpload from "../../../hooks/useComtradeFileUpload";
 
 interface EventsPaneProps {
   viewId: string;
@@ -33,47 +44,6 @@ const TemporaryTextWrapper = styled(Text)`
   justify-content: center;
 `;
 
-const EventsSettingsBar = styled.div`
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  width: 100%;
-  height: 100%;
-`;
-
-const EventsListWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  width: 100%;
-  height: 100%;
-
-  overflow-y: auto;
-`;
-
-const EventControlsWrapper = styled.div`
-  display: flex;
-  flex-direction: row;
-  flex-grow: 1;
-  width: 100%;
-  height: 100%;
-  justify-content: space-between;
-  align-items: center;
-
-  padding: 10px;
-`;
-
-const EventControls = styled.div`
-  display: flex;
-  flex-direction: row;
-`;
-
-const EventControl = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
 type AccordianState = {
   eventId: string;
   isOpen: boolean;
@@ -82,8 +52,13 @@ type AccordianState = {
 const EventsPane = (props: EventsPaneProps) => {
   const [eventsState, setEventsState] = useRecoilState(eventsStateAtom);
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
-
   const [accordionState, setAccordionState] = useState<AccordianState[]>([]);
+
+  const { openFileDialog } = useComtradeFileUpload((comtrade: Comtrade) => {
+    setEventsState((oldEventsState: Comtrade[]) => {
+      return [...oldEventsState, comtrade];
+    });
+  });
 
   useEffect(() => {
     setAccordionState(
@@ -97,100 +72,111 @@ const EventsPane = (props: EventsPaneProps) => {
   }, [eventsState]);
 
   const addEvent = () => {
-    setEventsState((oldEventsState: Comtrade[]) => {
-      return [
-        ...oldEventsState,
-        {
-          id: "event-" + (oldEventsState.length + 1),
-          eventId: oldEventsState.length + 1,
-        } as Comtrade,
-      ];
-    });
+    openFileDialog();
   };
 
   return (
     <PaneWrapper $isDark={isDarkTheme(blueprintTheme)}>
       <EventsSettingsBar>
-        <Navbar>
-          <Navbar.Group align={Alignment.LEFT}>
-            <Navbar.Heading>Manage Events</Navbar.Heading>
-            <Navbar.Divider />
-            <Tag>{eventsState.length} loaded</Tag>
-          </Navbar.Group>
-          <Navbar.Group align={Alignment.RIGHT}>
-            <Button
-              className={Classes.MINIMAL}
-              icon="add"
-              text="Add Event"
-              onClick={addEvent}
-            />
-          </Navbar.Group>
-        </Navbar>
-        <EventsListWrapper>
-          {eventsState.map((event, index) => {
-            return (
-              <div>
-                <Card style={{ padding: 0 }}>
-                  <EventControlsWrapper>
-                    <Text>
-                      Event{" "}
-                      <Tag minimal round>
-                        {event.eventId}
-                      </Tag>
-                    </Text>
-                    <EventControls>
-                      <EventControl>
-                        <Button
-                          minimal
-                          icon="remove"
-                          onClick={() => {
-                            setEventsState((oldEventsState) => {
-                              return oldEventsState.filter(
-                                (eventState) => eventState.id !== event.id
-                              );
-                            });
-                          }}
-                        />
-                      </EventControl>
-                      <EventControl>
-                        <Button
-                          minimal
-                          rightIcon={
-                            accordionState[index]?.isOpen
-                              ? "caret-up"
-                              : "caret-down"
-                          }
-                          onClick={() => {
-                            setAccordionState((oldAccordionState) => {
-                              return oldAccordionState.map((accordionState) => {
-                                if (accordionState.eventId === event.id) {
-                                  return {
-                                    ...accordionState,
-                                    isOpen: !accordionState.isOpen,
-                                  };
-                                } else {
-                                  return accordionState;
-                                }
-                              });
-                            });
-                          }}
-                        />
-                      </EventControl>
-                    </EventControls>
-                  </EventControlsWrapper>
-                </Card>
-                <Collapse isOpen={accordionState[index]?.isOpen}>
-                  <Card>
-                    <TemporaryTextWrapper>
-                      <Text>Event Settings</Text>
-                    </TemporaryTextWrapper>
-                  </Card>
-                </Collapse>
-              </div>
-            );
-          })}
-        </EventsListWrapper>
+        <Card elevation={Elevation.ONE} style={{ padding: 0, width: "100%" }}>
+          <EventsNavWrapper>
+            <EventsNavGroup>
+              <Navbar.Heading>Manage Events</Navbar.Heading>
+              <Navbar.Divider />
+              <Tag>{eventsState.length} loaded</Tag>
+            </EventsNavGroup>
+            <EventsNavGroup>
+              <Button
+                className={Classes.MINIMAL}
+                icon="add"
+                text="Add Event"
+                onClick={addEvent}
+              />
+            </EventsNavGroup>
+          </EventsNavWrapper>
+        </Card>
       </EventsSettingsBar>
+      <EventsListWrapper>
+        {eventsState.map((event, index) => {
+          return (
+            <div key={event.id}>
+              <Card style={{ padding: 0 }} elevation={Elevation.ONE}>
+                <EventControlsWrapper>
+                  <Text>
+                    {event.config.stationName}{" "}
+                    <Tag minimal round>
+                      ID: {event.eventId}
+                    </Tag>
+                  </Text>
+                  <EventControls>
+                    <EventControl>
+                      <Button
+                        minimal
+                        icon="remove"
+                        onClick={() => {
+                          setEventsState((oldEventsState) => {
+                            return oldEventsState.filter(
+                              (eventState) => eventState.id !== event.id
+                            );
+                          });
+                        }}
+                      />
+                    </EventControl>
+                    <EventControl>
+                      <Button
+                        minimal
+                        rightIcon={
+                          accordionState[index]?.isOpen
+                            ? "caret-up"
+                            : "caret-down"
+                        }
+                        onClick={() => {
+                          setAccordionState((oldAccordionState) => {
+                            return oldAccordionState.map((accordionState) => {
+                              if (accordionState.eventId === event.id) {
+                                return {
+                                  ...accordionState,
+                                  isOpen: !accordionState.isOpen,
+                                };
+                              } else {
+                                return accordionState;
+                              }
+                            });
+                          });
+                        }}
+                      />
+                    </EventControl>
+                  </EventControls>
+                </EventControlsWrapper>
+              </Card>
+              <Collapse isOpen={accordionState[index]?.isOpen}>
+                <Card>
+                  <EventDetailsWrapper>
+                    <Text>
+                      Event ID: <Tag>{event.eventId}</Tag>
+                    </Text>
+                    <Text>
+                      Station Name: <Tag>{event.config.stationName}</Tag>
+                    </Text>
+                    <Text>
+                      Recording Device ID:{" "}
+                      <Tag>{event.config.recordingDeviceId}</Tag>
+                    </Text>
+                    <Text>
+                      Analog Channel Count:{" "}
+                      <Tag>{event.analogChannels.length}</Tag>
+                    </Text>
+                    <Text>
+                      Digital Channel Count:{" "}
+                      <Tag>{event.digitalChannels.length}</Tag>
+                    </Text>
+                  </EventDetailsWrapper>
+                </Card>
+              </Collapse>
+            </div>
+          );
+        })}
+      </EventsListWrapper>
     </PaneWrapper>
   );
 };
