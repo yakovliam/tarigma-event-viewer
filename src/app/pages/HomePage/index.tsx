@@ -21,6 +21,7 @@ import styled from "styled-components";
 import { THEMES } from "../../../types/mosaic/theme";
 import { addToTopRight, getPathById } from "../../../utils/mosaic/leaf-utils";
 import EmptyMosaicInfo from "../../components/empty/EmptyMosaicInfo";
+import { MosaicTileType } from "../../../types/mosaic/tiles";
 
 export function HomePage() {
   const [repository, setRepository] = useRecoilState(mosaicRepository);
@@ -73,9 +74,10 @@ export function HomePage() {
   /**
    * Add a tile to the repository of available tiles.
    * @param viewId the viewId of the tile to add to the repository
+   * @param tileType the type of tile to add to the repository
    */
-  const addTile = (viewId: string) => {
-    const tile = createInstance("analog", viewId);
+  const addTile = (viewId: string, tileType?: MosaicTileType) => {
+    const tile = createInstance(tileType || "analog", viewId);
     setRepository([...repository, tile]);
   };
 
