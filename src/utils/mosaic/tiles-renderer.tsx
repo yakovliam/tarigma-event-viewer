@@ -3,7 +3,6 @@ import {
   ExpandButton,
   MosaicBranch,
   MosaicWindow,
-  SplitButton,
 } from "react-mosaic-component";
 import {
   MosaicTileType,

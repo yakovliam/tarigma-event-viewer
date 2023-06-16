@@ -7,11 +7,8 @@ import {
   updateTree,
 } from "react-mosaic-component";
 import "react-mosaic-component/react-mosaic-component.css";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
-import {
-  initializeTiles,
-  renderTile,
-} from "../../../utils/mosaic/tiles-renderer";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { initializeTiles } from "../../../utils/mosaic/tiles-renderer";
 import {
   blueprintThemeRepository,
   mosaicRepository,
@@ -27,6 +24,7 @@ import {
 } from "../../../utils/mosaic/leaf-utils";
 import EmptyMosaicInfo from "../../components/empty/EmptyMosaicInfo";
 import { MosaicTileType } from "../../../types/mosaic/tiles";
+import useTileRenderer from "../../hooks/useTileRenderer";
 
 export function HomePage() {
   const [repository, setRepository] = useRecoilState(mosaicRepository);
@@ -165,6 +163,8 @@ export function HomePage() {
 
     setMosaicState({ ...mosaicState, currentNode });
   };
+
+  const { renderTile } = useTileRenderer(addTileAtPath, removeTile);
 
   return (
     <>

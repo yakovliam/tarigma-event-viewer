@@ -11,6 +11,9 @@ const PaneWrapper = styled.div<PaneWrapperProps>`
   height: 100%;
   width: 100%;
   flex: 1;
+
+  display: flex;
+  flex-direction: row;
 `;
 
 export default PaneWrapper;
