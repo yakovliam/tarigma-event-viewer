@@ -25,6 +25,7 @@ import {
   DialogFooter,
   Elevation,
 } from "@blueprintjs/core";
+import SourcePickerDialogContent from "../../source/SourcePickerDialogContent";
 
 const leftPadding = 50;
 const rightPadding = 20;
@@ -240,7 +241,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
           dependentAxis
         />
 
-        <VictoryLine
+        {/* <VictoryLine
           groupComponent={<CanvasGroup />}
           interpolation={"natural"}
           style={{
@@ -266,7 +267,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
           }}
           samples={100}
           y={(d) => 2.3 * Math.sin(0.33 * Math.PI + 10 * Math.PI * d.x)}
-        />
+        /> */}
       </VictoryChart>
       <Card
         style={{
@@ -288,9 +289,13 @@ const AnalogPane = (props: AnalogPaneProps) => {
         onClose={() => {
           setSourcesIsOpen(false);
         }}
+        style={{
+          // override blueprint style
+          width: "700px",
+        }}
       >
-        <DialogBody>
-          <p>Body</p>
+        <DialogBody useOverflowScrollContainer>
+          <SourcePickerDialogContent viewId={props.viewId} />
         </DialogBody>
         <DialogFooter
           actions={
