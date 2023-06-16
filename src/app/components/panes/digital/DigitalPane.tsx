@@ -141,6 +141,7 @@ const DigitalPane = (props: DigitalPaneProps) => {
           }
           return (
             <div
+              key={cursor.id}
               onMouseDown={(e) => {
                 e.stopPropagation();
                 hookCursor(cursor.id);

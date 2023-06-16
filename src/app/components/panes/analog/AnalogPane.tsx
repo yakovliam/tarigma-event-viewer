@@ -144,6 +144,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
           }
           return (
             <div
+              key={cursor.id}
               onMouseDown={(e) => {
                 e.stopPropagation();
                 hookCursor(cursor.id);
