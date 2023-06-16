@@ -5,7 +5,10 @@ import {
   MosaicWindow,
   SplitButton,
 } from "react-mosaic-component";
-import { MosaicTilesRepository } from "../../types/mosaic/tiles";
+import {
+  MosaicTileType,
+  MosaicTilesRepository,
+} from "../../types/mosaic/tiles";
 import { v4 as uuidv4 } from "uuid";
 import { MosaicTile } from "../../types/mosaic/tile";
 import { Button } from "@blueprintjs/core";
@@ -25,7 +28,11 @@ export const renderTile = (
   id: string,
   element: JSX.Element,
   title: string,
-  addTile: (viewId: string) => void,
+  addTileAtPath: (
+    viewId: string,
+    tileType: MosaicTileType,
+    path: MosaicBranch[]
+  ) => void,
   removeTile: (viewId: string) => void
 ): CallableFunction => {
   return (path: MosaicBranch[]) => {
@@ -33,10 +40,13 @@ export const renderTile = (
       <MosaicWindow
         toolbarControls={[
           <ExpandButton key={0} />,
-          <SplitButton
+          <Button
+            minimal
+            icon="add-column-right"
             key={1}
             onClick={() => {
-              // addTile(uuidv4());
+              const idToCreateNewNode = uuidv4();
+              addTileAtPath(idToCreateNewNode, "analog", path);
             }}
           />,
           <Button
@@ -50,9 +60,12 @@ export const renderTile = (
         ]}
         path={path}
         createNode={() => {
-          const idToCreateNewNode = uuidv4();
-          addTile(idToCreateNewNode);
-          return idToCreateNewNode;
+          throw new Error(
+            "Should never create a new node for an existing tile using this method."
+          );
+          // const idToCreateNewNode = uuidv4();
+          // addTile(idToCreateNewNode);
+          // return idToCreateNewNode;
         }}
         title={title || "Untitled"}
       >

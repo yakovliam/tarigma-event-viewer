@@ -21,7 +21,7 @@ const EmptyStateWrapper = styled.div<EmptyStateWrapperProps>`
 `;
 
 type EmptyMosaicInfoProps = {
-  addTile: (viewId: string, tileType?: MosaicTileType) => void;
+  addTile: (viewId: string, tileType: MosaicTileType) => void;
   addTileToCorner: (viewId: string) => void;
 };
 

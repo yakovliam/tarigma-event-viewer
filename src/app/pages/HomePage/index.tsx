@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  MosaicBranch,
   MosaicNode,
   MosaicWithoutDragDropContext,
   createRemoveUpdate,
@@ -19,7 +20,11 @@ import {
 import { createInstance } from "../../../utils/mosaic/tiles";
 import styled from "styled-components";
 import { THEMES } from "../../../types/mosaic/theme";
-import { addToTopRight, getPathById } from "../../../utils/mosaic/leaf-utils";
+import {
+  addAtPath,
+  addToTopRight,
+  getPathById,
+} from "../../../utils/mosaic/leaf-utils";
 import EmptyMosaicInfo from "../../components/empty/EmptyMosaicInfo";
 import { MosaicTileType } from "../../../types/mosaic/tiles";
 
@@ -35,7 +40,6 @@ export function HomePage() {
    */
   useEffect(() => {
     if (!shouldInitializeTiles) {
-      console.log("initializing tiles");
       setRepository(initializeTiles());
     }
     setShouldInitializeTiles(true);
@@ -72,12 +76,33 @@ export function HomePage() {
   }, [shouldInitializeTiles]);
 
   /**
+   *
+   * @param viewId
+   * @param path
+   */
+  const addTileAtPath = (
+    viewId: string,
+    tileType: MosaicTileType,
+    path: MosaicBranch[]
+  ) => {
+    addTile(viewId, tileType);
+
+    // add the tile at the specified path
+    const currentNode: MosaicNode<string> | null =
+      mosaicState.currentNode as MosaicNode<string> | null;
+    setMosaicState({
+      ...mosaicState,
+      currentNode: addAtPath(currentNode, viewId, path, "row"),
+    });
+  };
+
+  /**
    * Add a tile to the repository of available tiles.
    * @param viewId the viewId of the tile to add to the repository
    * @param tileType the type of tile to add to the repository
    */
-  const addTile = (viewId: string, tileType?: MosaicTileType) => {
-    const tile = createInstance(tileType || "analog", viewId);
+  const addTile = (viewId: string, tileType: MosaicTileType) => {
+    const tile = createInstance(tileType, viewId);
     setRepository([...repository, tile]);
   };
 
@@ -160,7 +185,13 @@ export function HomePage() {
                 return <div>Tile not found</div>;
               }
 
-              return renderTile(id, element, title, addTile, removeTile)(path);
+              return renderTile(
+                id,
+                element,
+                title,
+                addTileAtPath,
+                removeTile
+              )(path);
             }}
             value={mosaicState.currentNode || null}
             onChange={(node) => onChange(node)}

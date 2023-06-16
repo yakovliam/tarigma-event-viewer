@@ -48,44 +48,85 @@ const addToTopRight = (
   currentNode: MosaicNode<string> | null,
   viewId: string
 ): MosaicNode<string> => {
-  if (currentNode) {
-    const path = getPathToCorner(currentNode, Corner.TOP_RIGHT);
-    const parent = getNodeAtPath(
-      currentNode,
-      dropRight(path)
-    ) as MosaicParent<string>;
-    const destination = getNodeAtPath(currentNode, path) as MosaicNode<string>;
-    const direction: MosaicDirection = parent
-      ? getOtherDirection(parent.direction)
-      : "row";
+  if (!currentNode) {
+    return viewId;
+  }
 
-    let first: MosaicNode<string>;
-    let second: MosaicNode<string>;
-    if (direction === "row") {
-      first = destination;
-      second = viewId;
-    } else {
-      first = viewId;
-      second = destination;
-    }
+  const path = getPathToCorner(currentNode, Corner.TOP_RIGHT);
+  const parent = getNodeAtPath(
+    currentNode,
+    dropRight(path)
+  ) as MosaicParent<string>;
+  const destination = getNodeAtPath(currentNode, path) as MosaicNode<string>;
+  const direction: MosaicDirection = parent
+    ? getOtherDirection(parent.direction)
+    : "row";
 
-    currentNode = updateTree(currentNode, [
-      {
-        path,
-        spec: {
-          $set: {
-            direction,
-            first,
-            second,
-          },
+  let first: MosaicNode<string>;
+  let second: MosaicNode<string>;
+  if (direction === "row") {
+    first = destination;
+    second = viewId;
+  } else {
+    first = viewId;
+    second = destination;
+  }
+
+  currentNode = updateTree(currentNode, [
+    {
+      path,
+      spec: {
+        $set: {
+          direction,
+          first,
+          second,
         },
       },
-    ]);
-  } else {
-    currentNode = viewId;
-  }
+    },
+  ]);
 
   return currentNode;
 };
 
-export { addToTopRight, getPathById };
+const addAtPath = (
+  currentNode: MosaicNode<string> | null,
+  viewId: string,
+  path: MosaicPath,
+  direction: MosaicDirection
+): MosaicNode<string> => {
+  if (!currentNode) {
+    return viewId;
+  }
+
+  // get the destination node
+  const destination = getNodeAtPath(currentNode, path) as MosaicNode<string>;
+
+  // get the first and second nodes
+  let first: MosaicNode<string>;
+  let second: MosaicNode<string>;
+  if (direction === "row") {
+    first = destination;
+    second = viewId;
+  } else {
+    first = viewId;
+    second = destination;
+  }
+
+  // update the tree
+  currentNode = updateTree(currentNode, [
+    {
+      path,
+      spec: {
+        $set: {
+          direction,
+          first,
+          second,
+        },
+      },
+    },
+  ]);
+
+  return currentNode;
+};
+
+export { addToTopRight, getPathById, addAtPath };
