@@ -3,10 +3,8 @@ import { isDarkTheme } from "../../../../types/blueprint/theme-utils";
 import { blueprintThemeRepository } from "../../../../utils/recoil/atoms";
 import PaneWrapper from "../PaneWrapper";
 import {
-  CanvasGroup,
   VictoryAxis,
   VictoryChart,
-  VictoryLine,
   VictoryZoomContainer,
   DomainTuple,
 } from "victory";
@@ -23,7 +21,6 @@ import {
   Dialog,
   DialogBody,
   DialogFooter,
-  Elevation,
 } from "@blueprintjs/core";
 import SourcePickerDialogContent from "../../source/SourcePickerDialogContent";
 
