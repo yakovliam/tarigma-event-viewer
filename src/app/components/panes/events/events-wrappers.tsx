@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import EventsPane from './EventsPane';
 
 export const EventsNavWrapper = styled.div`
   display: flex;
@@ -56,4 +57,12 @@ export const EventDetailsWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 4px;
+`;
+
+export const EventsPaneWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  height: 100%;
+  width: 100%;
 `;

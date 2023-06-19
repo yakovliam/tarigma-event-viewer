@@ -1,4 +1,4 @@
-import { atom } from "recoil";
+import { atom, selectorFamily } from "recoil";
 import MosaicState from "../../types/mosaic/state";
 import { BlueprintTheme } from "../../types/blueprint/theme";
 import { MosaicTilesRepository } from "../../types/mosaic/tiles";
@@ -14,6 +14,17 @@ const blueprintThemeRepository = atom({
 const mosaicRepository = atom({
   key: "mosaicRepository",
   default: [] as MosaicTilesRepository,
+});
+
+// selector for getting a tile based on its id
+const getTile = selectorFamily({
+  key: "getTile",
+  get:
+    (id: string) =>
+    ({ get }) => {
+      const tiles = get(mosaicRepository);
+      return tiles.find((tile) => tile.viewId === id);
+    },
 });
 
 const defaultMosaicState: MosaicState = {
@@ -53,4 +64,5 @@ export {
   blueprintThemeRepository,
   cursorsState,
   eventsState,
+  getTile,
 };

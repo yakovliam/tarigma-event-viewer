@@ -30,8 +30,12 @@ interface DigitalPaneProps {
 
 const DigitalPane = (props: DigitalPaneProps) => {
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
-
   const { observe, unobserve, width, height } = useDimensions();
+
+  /**
+   * CURSOR LOGIC -------------------------------------------------------------
+   */
+
   const [zoomDomain, setZoomDomain] = useState({
     x: [minDomainX, maxDomainX],
     y: [0, 10],
@@ -115,6 +119,10 @@ const DigitalPane = (props: DigitalPaneProps) => {
 
     updateCursorsState(hookedCursor, x);
   };
+
+  /**
+   * END CURSOR LOGIC ---------------------------------------------------------
+   */
 
   return (
     <PaneWrapper

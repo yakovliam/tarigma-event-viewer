@@ -4,6 +4,7 @@ import { isDarkTheme } from "../../../types/blueprint/theme-utils";
 import { useRecoilValue } from "recoil";
 import { blueprintThemeRepository } from "../../../utils/recoil/atoms";
 import { v4 as uuidv4 } from "uuid";
+import { MosaicTileType } from "../../../types/mosaic/tiles";
 
 type EmptyStateWrapperProps = {
   $isDark: boolean;
@@ -20,7 +21,7 @@ const EmptyStateWrapper = styled.div<EmptyStateWrapperProps>`
 `;
 
 type EmptyMosaicInfoProps = {
-  addTile: (viewId: string) => void;
+  addTile: (viewId: string, tileType: MosaicTileType) => void;
   addTileToCorner: (viewId: string) => void;
 };
 
@@ -47,7 +48,7 @@ const EmptyMosaicInfo = ({
             text="Open Events"
             onClick={() => {
               const viewId = uuidv4();
-              addTile(viewId);
+              addTile(viewId, "events");
               addTileToCorner(viewId);
             }}
           />

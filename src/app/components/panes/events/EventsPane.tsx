@@ -25,6 +25,7 @@ import {
   EventsListWrapper,
   EventsNavGroup,
   EventsNavWrapper,
+  EventsPaneWrapper,
   EventsSettingsBar,
 } from "./events-wrappers";
 import useComtradeFileUpload from "../../../hooks/useComtradeFileUpload";
@@ -77,106 +78,108 @@ const EventsPane = (props: EventsPaneProps) => {
 
   return (
     <PaneWrapper $isDark={isDarkTheme(blueprintTheme)}>
-      <EventsSettingsBar>
-        <Card elevation={Elevation.ONE} style={{ padding: 0, width: "100%" }}>
-          <EventsNavWrapper>
-            <EventsNavGroup>
-              <Navbar.Heading>Manage Events</Navbar.Heading>
-              <Navbar.Divider />
-              <Tag>{eventsState.length} loaded</Tag>
-            </EventsNavGroup>
-            <EventsNavGroup>
-              <Button
-                className={Classes.MINIMAL}
-                icon="add"
-                text="Add Event"
-                onClick={addEvent}
-              />
-            </EventsNavGroup>
-          </EventsNavWrapper>
-        </Card>
-      </EventsSettingsBar>
-      <EventsListWrapper>
-        {eventsState.map((event, index) => {
-          return (
-            <div key={event.id}>
-              <Card style={{ padding: 0 }} elevation={Elevation.ONE}>
-                <EventControlsWrapper>
-                  <Text>
-                    {event.config.stationName}{" "}
-                    <Tag minimal round>
-                      ID: {event.eventId}
-                    </Tag>
-                  </Text>
-                  <EventControls>
-                    <EventControl>
-                      <Button
-                        minimal
-                        icon="remove"
-                        onClick={() => {
-                          setEventsState((oldEventsState) => {
-                            return oldEventsState.filter(
-                              (eventState) => eventState.id !== event.id
-                            );
-                          });
-                        }}
-                      />
-                    </EventControl>
-                    <EventControl>
-                      <Button
-                        minimal
-                        rightIcon={
-                          accordionState[index]?.isOpen
-                            ? "caret-up"
-                            : "caret-down"
-                        }
-                        onClick={() => {
-                          setAccordionState((oldAccordionState) => {
-                            return oldAccordionState.map((accordionState) => {
-                              if (accordionState.eventId === event.id) {
-                                return {
-                                  ...accordionState,
-                                  isOpen: !accordionState.isOpen,
-                                };
-                              } else {
-                                return accordionState;
-                              }
+      <EventsPaneWrapper>
+        <EventsSettingsBar>
+          <Card elevation={Elevation.ONE} style={{ padding: 0, width: "100%" }}>
+            <EventsNavWrapper>
+              <EventsNavGroup>
+                <Navbar.Heading>Manage Events</Navbar.Heading>
+                <Navbar.Divider />
+                <Tag>{eventsState.length} loaded</Tag>
+              </EventsNavGroup>
+              <EventsNavGroup>
+                <Button
+                  className={Classes.MINIMAL}
+                  icon="add"
+                  text="Add Event"
+                  onClick={addEvent}
+                />
+              </EventsNavGroup>
+            </EventsNavWrapper>
+          </Card>
+        </EventsSettingsBar>
+        <EventsListWrapper>
+          {eventsState.map((event, index) => {
+            return (
+              <div key={event.id}>
+                <Card style={{ padding: 0 }} elevation={Elevation.ONE}>
+                  <EventControlsWrapper>
+                    <Text>
+                      {event.config.stationName}{" "}
+                      <Tag minimal round>
+                        ID: {event.eventId}
+                      </Tag>
+                    </Text>
+                    <EventControls>
+                      <EventControl>
+                        <Button
+                          minimal
+                          icon="remove"
+                          onClick={() => {
+                            setEventsState((oldEventsState) => {
+                              return oldEventsState.filter(
+                                (eventState) => eventState.id !== event.id
+                              );
                             });
-                          });
-                        }}
-                      />
-                    </EventControl>
-                  </EventControls>
-                </EventControlsWrapper>
-              </Card>
-              <Collapse isOpen={accordionState[index]?.isOpen}>
-                <Card>
-                  <EventDetailsWrapper>
-                    <Text>
-                      Event ID: <Tag>{event.eventId}</Tag>
-                    </Text>
-                    <Text>
-                      Station Name: <Tag>{event.config.stationName}</Tag>
-                    </Text>
-                    <Text>
-                      Recording Device ID:{" "}
-                      <Tag>{event.config.recordingDeviceId}</Tag>
-                    </Text>
-                    <Text>
-                      Analog Channel Count:{" "}
-                      <Tag>{event.analogChannels.length}</Tag>
-                    </Text>
-                    <Text>
-                      Digital Channel Count:{" "}
-                      <Tag>{event.digitalChannels.length}</Tag>
-                    </Text>
-                  </EventDetailsWrapper>
+                          }}
+                        />
+                      </EventControl>
+                      <EventControl>
+                        <Button
+                          minimal
+                          rightIcon={
+                            accordionState[index]?.isOpen
+                              ? "caret-up"
+                              : "caret-down"
+                          }
+                          onClick={() => {
+                            setAccordionState((oldAccordionState) => {
+                              return oldAccordionState.map((accordionState) => {
+                                if (accordionState.eventId === event.id) {
+                                  return {
+                                    ...accordionState,
+                                    isOpen: !accordionState.isOpen,
+                                  };
+                                } else {
+                                  return accordionState;
+                                }
+                              });
+                            });
+                          }}
+                        />
+                      </EventControl>
+                    </EventControls>
+                  </EventControlsWrapper>
                 </Card>
-              </Collapse>
-            </div>
-          );
-        })}
-      </EventsListWrapper>
+                <Collapse isOpen={accordionState[index]?.isOpen}>
+                  <Card>
+                    <EventDetailsWrapper>
+                      <Text>
+                        Event ID: <Tag>{event.eventId}</Tag>
+                      </Text>
+                      <Text>
+                        Station Name: <Tag>{event.config.stationName}</Tag>
+                      </Text>
+                      <Text>
+                        Recording Device ID:{" "}
+                        <Tag>{event.config.recordingDeviceId}</Tag>
+                      </Text>
+                      <Text>
+                        Analog Channel Count:{" "}
+                        <Tag>{event.analogChannels.length}</Tag>
+                      </Text>
+                      <Text>
+                        Digital Channel Count:{" "}
+                        <Tag>{event.digitalChannels.length}</Tag>
+                      </Text>
+                    </EventDetailsWrapper>
+                  </Card>
+                </Collapse>
+              </div>
+            );
+          })}
+        </EventsListWrapper>
+      </EventsPaneWrapper>
     </PaneWrapper>
   );
 };

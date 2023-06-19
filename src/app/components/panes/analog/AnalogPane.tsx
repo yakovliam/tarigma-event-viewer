@@ -3,10 +3,8 @@ import { isDarkTheme } from "../../../../types/blueprint/theme-utils";
 import { blueprintThemeRepository } from "../../../../utils/recoil/atoms";
 import PaneWrapper from "../PaneWrapper";
 import {
-  CanvasGroup,
   VictoryAxis,
   VictoryChart,
-  VictoryLine,
   VictoryZoomContainer,
   DomainTuple,
 } from "victory";
@@ -17,6 +15,14 @@ import {
   domainToPixels,
 } from "../../../../utils/domain/domain-utils";
 import { cursorsState as cursorsStateAtom } from "../../../../utils/recoil/atoms";
+import {
+  Button,
+  Card,
+  Dialog,
+  DialogBody,
+  DialogFooter,
+} from "@blueprintjs/core";
+import SourcePickerDialogContent from "../../source/SourcePickerDialogContent";
 
 const leftPadding = 50;
 const rightPadding = 20;
@@ -33,6 +39,12 @@ const AnalogPane = (props: AnalogPaneProps) => {
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
 
   const { observe, unobserve, width, height } = useDimensions();
+  const paneRef = useRef<HTMLDivElement | null>(null);
+
+  /**
+   * CURSOR LOGIC -------------------------------------------------------------
+   */
+
   const [zoomDomain, setZoomDomain] = useState({
     x: [minDomainX, maxDomainX],
     y: [-2.5, 2.5],
@@ -43,8 +55,6 @@ const AnalogPane = (props: AnalogPaneProps) => {
   const [hookedCursor, setHookedCursor] = useState<string | null>(null);
   const [pointerIcon, setPointerIcon] = useState("default" as PointerIcon);
   const [cursorsState, setCursorsState] = useRecoilState(cursorsStateAtom);
-
-  const paneRef = useRef<HTMLDivElement | null>(null);
 
   const updateCursorsState = (cursorId: string, x: number) => {
     setCursorsState((oldCursorsState) => {
@@ -118,6 +128,12 @@ const AnalogPane = (props: AnalogPaneProps) => {
     const hookedCursorId: string = hookedCursor as string;
     updateCursorsState(hookedCursorId, x);
   };
+
+  /**
+   * END CURSOR LOGIC -------------------------------------------------------------
+   */
+
+  const [sourcesIsOpen, setSourcesIsOpen] = useState(false);
 
   return (
     <PaneWrapper
@@ -222,7 +238,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
           dependentAxis
         />
 
-        <VictoryLine
+        {/* <VictoryLine
           groupComponent={<CanvasGroup />}
           interpolation={"natural"}
           style={{
@@ -248,8 +264,49 @@ const AnalogPane = (props: AnalogPaneProps) => {
           }}
           samples={100}
           y={(d) => 2.3 * Math.sin(0.33 * Math.PI + 10 * Math.PI * d.x)}
-        />
+        /> */}
       </VictoryChart>
+      <Card
+        style={{
+          padding: "4px",
+        }}
+      >
+        <Button
+          minimal
+          icon="database"
+          onClick={() => {
+            setSourcesIsOpen(!sourcesIsOpen);
+          }}
+        />
+      </Card>
+      <Dialog
+        title="Sources"
+        isOpen={sourcesIsOpen}
+        icon="database"
+        onClose={() => {
+          setSourcesIsOpen(false);
+        }}
+        style={{
+          // override blueprint style
+          width: "700px",
+        }}
+      >
+        <DialogBody useOverflowScrollContainer>
+          <SourcePickerDialogContent viewId={props.viewId} />
+        </DialogBody>
+        <DialogFooter
+          actions={
+            <Button
+              intent="primary"
+              onClick={() => {
+                setSourcesIsOpen(false);
+              }}
+            >
+              Close
+            </Button>
+          }
+        />
+      </Dialog>
     </PaneWrapper>
   );
 };

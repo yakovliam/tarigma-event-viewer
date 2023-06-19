@@ -35,6 +35,7 @@ export const createInstance = (
     viewId: id,
     title: type.charAt(0).toUpperCase() + type.slice(1) + ": " + id.slice(0, 3),
     element: tileContent,
+    dataSources: [],
   };
 
   return tile;
