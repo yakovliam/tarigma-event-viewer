@@ -4,6 +4,7 @@ import { BlueprintTheme } from "../../types/blueprint/theme";
 import { MosaicTilesRepository } from "../../types/mosaic/tiles";
 import CursorState from "../../types/cursor/cursor-state";
 import Comtrade from "../../types/data/comtrade/comtrade";
+import { TreeNodeInfo } from "@blueprintjs/core";
 
 const defaultBlueprintTheme: BlueprintTheme = "Blueprint" as BlueprintTheme;
 const blueprintThemeRepository = atom({
@@ -58,11 +59,17 @@ const eventsState = atom({
   default: [] as Comtrade[],
 });
 
+const selectedSources = atom({
+  key: "selectedSources",
+  default: [] as TreeNodeInfo[],
+});
+
 export {
   mosaicRepository,
   mosaicState,
   blueprintThemeRepository,
   cursorsState,
   eventsState,
+  selectedSources,
   getTile,
 };

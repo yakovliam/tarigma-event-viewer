@@ -1,7 +1,8 @@
 import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
-
+import { selectedSources as globalSelectedSources } from "../../../utils/recoil/atoms"
 import { Classes, Tree, TreeNode, TreeNodeInfo } from "@blueprintjs/core";
+import { selectorFamily, useRecoilState } from "recoil";
 
 type NodePath = number[];
 
@@ -12,9 +13,13 @@ type TreeAction =
     }
   | { type: "DESELECT_ALL" }
   | {
-      type: "SET_IS_SELECTED";
+      type: "DELETE";
       payload: { path: NodePath; isSelected: boolean };
     }
+  | {
+      type: "ADD_FOLDER";
+      payload: { addednode: TreeNode | any };
+    };
 
 function forEachNode(
   nodes: TreeNodeInfo[] | undefined,
@@ -38,7 +43,7 @@ function forNodeAtPath(
   callback(Tree.nodeFromPath(path, nodes));
 }
 
-function AvailableReducer(state: TreeNodeInfo[], action: TreeAction) {
+function SelectedReducer(state: TreeNodeInfo[], action: TreeAction) {
   const newState = cloneDeep(state);
   switch (action.type) {
     case "DESELECT_ALL":
@@ -51,27 +56,49 @@ function AvailableReducer(state: TreeNodeInfo[], action: TreeAction) {
         (node) => (node.isExpanded = action.payload.isExpanded)
       );
       return newState;
-    case "SET_IS_SELECTED":
-      forNodeAtPath(
-        newState,
-        action.payload.path,
-        (node) => (node.isSelected = action.payload.isSelected)
-      );
-      return newState;
+    case "DELETE":
+      console.log(newState)
+      console.log(action.payload.path)
+      // eslint-disable-next-line no-case-declarations
+      const index:any = action.payload.path
+      newState.splice(index, 1)
+      return newState
+    case "ADD_FOLDER":
+      // console.log(action.payload.addednode);
+      if(action.payload.addednode.childNodes != null){
+      return [...newState, action.payload.addednode] as TreeNodeInfo[]
+      }
+      else {
+        return newState
+      }
     default:
       return state;
   }
 }
 
-export const AvailableSourcesTree = (props: any) => {
+export const SelectedSourcesTree = (props: any) => {
+  const [selectedSources, setSelectedSources] = useRecoilState(globalSelectedSources)
   const [nodes, dispatch] = React.useReducer(
-    AvailableReducer,
-    INITIAL_AVAIABLE_STATE
+    SelectedReducer,
+    selectedSources
   );
 
   React.useEffect(() => {
-    console.log(nodes)
-  }, [])
+    if (props.selectedSources.id != null) {
+      // console.log(props.selectedSources);
+      dispatch({ type: "DESELECT_ALL" });
+      dispatch({
+        payload: { addednode: props.selectedSources },
+        type: "ADD_FOLDER",
+      });
+    }
+  }, [props.selectedSources]);
+
+  React.useEffect(() => {
+    console.log("nodeschanged", nodes)
+    setSelectedSources(nodes)
+    console.log(selectedSources)
+  }, [nodes])
 
   const handleNodeClick = React.useCallback(
     (
@@ -88,9 +115,8 @@ export const AvailableSourcesTree = (props: any) => {
           path: nodePath,
           isSelected: originallySelected == null ? true : !originallySelected,
         },
-        type: "SET_IS_SELECTED",
+        type: "DELETE",
       });
-      props.setselected(node);
     },
     []
   );
@@ -125,49 +151,3 @@ export const AvailableSourcesTree = (props: any) => {
     />
   );
 };
-
-
-/* tslint:disable:object-literal-sort-keys so childNodes can come last */
-const INITIAL_AVAIABLE_STATE: TreeNodeInfo[] = [
-  {
-    id: 0,
-    hasCaret: true,
-    icon: "folder-close",
-    label: "Event #1",
-  },
-  {
-    id: 1,
-    icon: "folder-close",
-    isExpanded: false,
-    label: "Event #2",
-    childNodes: [
-      {
-        id: 2,
-        icon: "pulse",
-        label: "Analog Source #1",
-      },
-    ],
-  },
-  {
-    id: 2,
-    hasCaret: true,
-    icon: "folder-close",
-    label: "Super secret files",
-    disabled: true,
-  },
-  {
-    id: 3,
-    icon: "folder-close",
-    isExpanded: false,
-    label: "Event #3",
-    childNodes: [
-      {
-        id: 4,
-        icon: "pulse",
-        label: "Analog Source #2",
-      },
-    ],
-  },
-];
-
-export default AvailableSourcesTree;

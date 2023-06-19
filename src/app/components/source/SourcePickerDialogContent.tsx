@@ -2,7 +2,9 @@ import { useRecoilValue } from "recoil";
 import { eventsState as eventsStateAtom } from "../../../utils/recoil/atoms";
 import { styled } from "styled-components";
 import { Card, Text } from "@blueprintjs/core";
-import AvailableSourcesTree from "./AvailableSourcesTree";
+import { AvailableSourcesTree } from "./AvailableSourcesTree";
+import { SelectedSourcesTree } from "./SelectedSourcesTree"
+import { useState } from "react";
 
 type SourcePickerDialogContentProps = {
   viewId: string;
@@ -35,8 +37,9 @@ const TreeWrapper = styled.div`
 `;
 
 const SourcePickerDialogContent = (props: SourcePickerDialogContentProps) => {
+  const [selectedSources, setSelectedSources] = useState({})
   const eventsState = useRecoilValue(eventsStateAtom);
-  console.log(eventsState);
+
   return (
     <DoublePanelWrapper>
       <SidePanelWrapper>
@@ -49,7 +52,7 @@ const SourcePickerDialogContent = (props: SourcePickerDialogContentProps) => {
         >
           <Text>Available Sources (viewId: {props.viewId})</Text>
           <TreeWrapper>
-            <AvailableSourcesTree />
+            <AvailableSourcesTree setselected={setSelectedSources} sourcevalue={selectedSources}/>
           </TreeWrapper>
         </Card>
       </SidePanelWrapper>
@@ -57,7 +60,7 @@ const SourcePickerDialogContent = (props: SourcePickerDialogContentProps) => {
         <Card style={{ padding: "10px", height: "100%", width: "100%" }}>
           <Text>Selected Sources</Text>
           <TreeWrapper>
-            <AvailableSourcesTree />
+            <SelectedSourcesTree selectedSources={selectedSources}/>
           </TreeWrapper>
         </Card>
       </SidePanelWrapper>
