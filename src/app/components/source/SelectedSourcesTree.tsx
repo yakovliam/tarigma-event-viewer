@@ -57,20 +57,12 @@ function SelectedReducer(state: TreeNodeInfo[], action: TreeAction) {
       );
       return newState;
     case "DELETE":
-      console.log(newState)
-      console.log(action.payload.path)
       // eslint-disable-next-line no-case-declarations
       const index:any = action.payload.path
       newState.splice(index, 1)
       return newState
     case "ADD_FOLDER":
-      // console.log(action.payload.addednode);
-      if(action.payload.addednode.childNodes != null){
       return [...newState, action.payload.addednode] as TreeNodeInfo[]
-      }
-      else {
-        return newState
-      }
     default:
       return state;
   }
@@ -85,7 +77,6 @@ export const SelectedSourcesTree = (props: any) => {
 
   React.useEffect(() => {
     if (props.selectedSources.id != null) {
-      // console.log(props.selectedSources);
       dispatch({ type: "DESELECT_ALL" });
       dispatch({
         payload: { addednode: props.selectedSources },
@@ -95,9 +86,7 @@ export const SelectedSourcesTree = (props: any) => {
   }, [props.selectedSources]);
 
   React.useEffect(() => {
-    console.log("nodeschanged", nodes)
     setSelectedSources(nodes)
-    console.log(selectedSources)
   }, [nodes])
 
   const handleNodeClick = React.useCallback(

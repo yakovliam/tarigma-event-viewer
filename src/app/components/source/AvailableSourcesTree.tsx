@@ -1,7 +1,10 @@
 import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
-
+import { eventsState as eventsStateAtom } from "../../../utils/recoil/atoms";
 import { Classes, Tree, TreeNode, TreeNodeInfo } from "@blueprintjs/core";
+import { useRecoilValue } from "recoil";
+import Comtrade from "../../../types/data/comtrade/comtrade";
+import AnalogChannel from "../../../types/data/comtrade/channel/analog/analog-channel";
 
 type NodePath = number[];
 
@@ -15,6 +18,10 @@ type TreeAction =
       type: "SET_IS_SELECTED";
       payload: { path: NodePath; isSelected: boolean };
     }
+  | {
+      type: "COMTRADE_ADDED";
+      payload: { tree: TreeNodeInfo[] };
+    };
 
 function forEachNode(
   nodes: TreeNodeInfo[] | undefined,
@@ -58,20 +65,56 @@ function AvailableReducer(state: TreeNodeInfo[], action: TreeAction) {
         (node) => (node.isSelected = action.payload.isSelected)
       );
       return newState;
+    case "COMTRADE_ADDED":
+      return action.payload.tree;
     default:
       return state;
   }
 }
 
+interface StricterTreeNodeInfo extends TreeNodeInfo {
+  childNodes: Array<TreeNodeInfo<{ id: number; icon: string; label: string }>>;
+}
+
+const comtradeToTree = (eventsState: Comtrade[]): TreeNodeInfo[] => {
+  const tree: TreeNodeInfo[] = [];
+
+  for (const comtrade of eventsState) {
+    const folder: StricterTreeNodeInfo = {
+      id: comtrade.eventId,
+      icon: "folder-close",
+      isExpanded: false,
+      label: `${comtrade.config.stationName}`,
+      childNodes: [],
+    };
+
+    const analogChannels = comtrade.analogChannels;
+    for (let i = 0; i < analogChannels.length; i++) {
+      folder.childNodes.push({
+        id: i,
+        icon: "pulse",
+        label: `${analogChannels[i].info.label}`,
+      });
+    }
+    tree.push(folder);
+  }
+
+  return tree;
+};
+
 export const AvailableSourcesTree = (props: any) => {
+  const eventsState = useRecoilValue(eventsStateAtom);
   const [nodes, dispatch] = React.useReducer(
     AvailableReducer,
-    INITIAL_AVAIABLE_STATE
+    [] as TreeNodeInfo[]
   );
 
   React.useEffect(() => {
-    console.log(nodes)
-  }, [])
+    dispatch({
+      type: "COMTRADE_ADDED",
+      payload: { tree: comtradeToTree(eventsState) },
+    });
+  }, [eventsState]);
 
   const handleNodeClick = React.useCallback(
     (
@@ -125,7 +168,6 @@ export const AvailableSourcesTree = (props: any) => {
     />
   );
 };
-
 
 /* tslint:disable:object-literal-sort-keys so childNodes can come last */
 const INITIAL_AVAIABLE_STATE: TreeNodeInfo[] = [
