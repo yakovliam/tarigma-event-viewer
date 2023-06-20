@@ -72,15 +72,24 @@ function AvailableReducer(state: TreeNodeInfo[], action: TreeAction) {
   }
 }
 
-interface StricterTreeNodeInfo extends TreeNodeInfo {
-  childNodes: Array<TreeNodeInfo<{ id: number; icon: string; label: string }>>;
+interface stricterChildNodes {
+  id: number;
+  icon: string;
+  label: string;
+  type: string;
+}
+
+// This was an attempt to force childnodes to not be possibly typed as undefined,
+// I failed so I ended up using some conditionals later to check if this prop exists
+interface StricterTreeNodeInfo<T> extends TreeNodeInfo {
+  childNodes: Array<TreeNodeInfo<any>>;
 }
 
 const comtradeToTree = (eventsState: Comtrade[]): TreeNodeInfo[] => {
   const tree: TreeNodeInfo[] = [];
 
   for (const comtrade of eventsState) {
-    const folder: StricterTreeNodeInfo = {
+    const folder: StricterTreeNodeInfo<stricterChildNodes> = {
       id: comtrade.eventId,
       icon: "folder-close",
       isExpanded: false,
@@ -88,13 +97,54 @@ const comtradeToTree = (eventsState: Comtrade[]): TreeNodeInfo[] => {
       childNodes: [],
     };
 
-    const analogChannels = comtrade.analogChannels;
-    for (let i = 0; i < analogChannels.length; i++) {
+    if (comtrade.analogChannels != null) {
+      const analogChannels = comtrade.analogChannels;
       folder.childNodes.push({
-        id: i,
-        icon: "pulse",
-        label: `${analogChannels[i].info.label}`,
-      });
+        id: comtrade.eventId,
+        icon: "folder-close",
+        isExpanded: false,
+        label: `Analog Sources`,
+        childNodes: [],
+      } as StricterTreeNodeInfo<stricterChildNodes>);
+
+      for (let i = 0; i < analogChannels.length; i++) {
+        const analogChildnodes = folder.childNodes.find(
+          (obj) => obj.label === "Analog Sources"
+        );
+        if (analogChildnodes?.childNodes)
+          analogChildnodes.childNodes.push({
+            id: i,
+            icon: "pulse",
+            label: `${analogChannels[i].info.label}`,
+            type: "analog",
+            parent: comtrade.id
+          } as any);
+      }
+    }
+
+    if (comtrade.digitalChannels != null) {
+      const digitalChannels = comtrade.digitalChannels;
+      folder.childNodes.push({
+        id: comtrade.eventId,
+        icon: "folder-close",
+        isExpanded: false,
+        label: `Digital Sources`,
+        childNodes: [],
+      } as StricterTreeNodeInfo<stricterChildNodes>);
+
+      for (let i = 0; i < digitalChannels.length; i++) {
+        const digitalChildnodes = folder.childNodes.find(
+          (obj) => obj.label === "Digital Sources"
+        );
+        if (digitalChildnodes?.childNodes)
+          digitalChildnodes.childNodes.push({
+            id: i,
+            icon: "grid-view",
+            label: `${digitalChannels[i].info.label}`,
+            type: "digital",
+            parent: comtrade.id
+          } as any);
+      }
     }
     tree.push(folder);
   }

@@ -1,0 +1,36 @@
+/* eslint-disable */
+const hdr:string = `
+3I2 = 6858
+DAY = 24
+EVENT = BG T
+FID = FID=SEL-311L-1-R215-V0-Z011005-D20130307
+FREQ = 60.02
+HOUR = 8
+IA = 2154
+IAL = 0
+IAX = 98307
+IAY = 98307
+IB = 7920
+IBL = 0
+IBX = 98307
+IBY = 98307
+IC = 726
+ICL = 0
+ICX = 98307
+ICY = 98307
+IG = 9894
+IP = 2
+LOCATION = 5.32
+MIN = 12
+MONTH = 11
+MSEC = 248
+NUM_OF_CYC = 30
+SAM/CYC_A = 16
+SAM/CYC_D = 16
+SEC = 27
+SHOT =  
+TARGETS = 50_51 ZONE1
+YEAR = 2020
+`
+
+export default hdr

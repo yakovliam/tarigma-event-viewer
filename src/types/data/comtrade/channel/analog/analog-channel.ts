@@ -2,6 +2,7 @@ import AnalogChannelInfo from "../../config/analog-channel-info";
 import TimestampedValue from "../timestamped-value";
 
 type AnalogChannel = {
+  label: any;
   /**
    * The index of the channel
    *

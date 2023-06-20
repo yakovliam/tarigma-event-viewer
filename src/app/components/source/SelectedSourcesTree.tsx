@@ -1,8 +1,11 @@
 import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
-import { selectedSources as globalSelectedSources } from "../../../utils/recoil/atoms"
+import { eventsState as eventsStateAtom } from "../../../utils/recoil/atoms";
+import { selectedSources as globalSelectedSources } from "../../../utils/recoil/atoms";
 import { Classes, Tree, TreeNode, TreeNodeInfo } from "@blueprintjs/core";
-import { selectorFamily, useRecoilState } from "recoil";
+import { selectorFamily, useRecoilState, useRecoilValue } from "recoil";
+import { isEqual } from "lodash";
+import Comtrade from "../../../types/data/comtrade/comtrade";
 
 type NodePath = number[];
 
@@ -58,21 +61,68 @@ function SelectedReducer(state: TreeNodeInfo[], action: TreeAction) {
       return newState;
     case "DELETE":
       // eslint-disable-next-line no-case-declarations
-      const index:any = action.payload.path
-      newState.splice(index, 1)
-      return newState
+      const index: any = action.payload.path;
+      newState.splice(index, 1);
+      return newState;
     case "ADD_FOLDER":
-      return [...newState, action.payload.addednode] as TreeNodeInfo[]
+      return [...newState, action.payload.addednode] as TreeNodeInfo[];
     default:
       return state;
   }
 }
 
+const treeNodesToComtradeData = (
+  nodes: TreeNodeInfo[],
+  comtrade: Comtrade[]
+) => {
+  const comtradeData = {analog: [] as any, digital: [] as any}
+  const iterate = (obj: any) => {
+    if (obj.childNodes) {
+      for (const child of obj.childNodes) {
+        iterate(child);
+      }
+    } else {
+      if (obj.type == "analog") {
+        const analogComtradeEvent = comtrade
+          .find((event) => {
+            return event.id === obj.parent;
+          })
+          ?.analogChannels.find((analog) => {
+            return analog.info.label === obj.label;
+          });
+
+        if(analogComtradeEvent)
+        comtradeData.analog.push(analogComtradeEvent)
+      } else {
+        const digitalComtradeEvent = comtrade
+          .find((event) => {
+            return event.id === obj.parent;
+          })
+          ?.digitalChannels.find((digital) => {
+            return digital.info.label === obj.label;
+          });
+
+        if(digitalComtradeEvent)
+        comtradeData.digital.push(digitalComtradeEvent)
+      }
+    }
+
+  };
+
+  for (const folder of nodes) {
+    iterate(folder);
+  }
+  return comtradeData
+};
+
 export const SelectedSourcesTree = (props: any) => {
-  const [selectedSources, setSelectedSources] = useRecoilState(globalSelectedSources)
+  const [selectedSources, setSelectedSources] = useRecoilState(
+    globalSelectedSources
+  );
+  const comtrades = useRecoilValue(eventsStateAtom);
   const [nodes, dispatch] = React.useReducer(
     SelectedReducer,
-    selectedSources
+    selectedSources.tree
   );
 
   React.useEffect(() => {
@@ -86,8 +136,11 @@ export const SelectedSourcesTree = (props: any) => {
   }, [props.selectedSources]);
 
   React.useEffect(() => {
-    setSelectedSources(nodes)
-  }, [nodes])
+    if (!isEqual(nodes, selectedSources.tree)) {
+      setSelectedSources({ tree: nodes, comtradeSources: treeNodesToComtradeData(nodes, comtrades) });
+    }
+    console.log(selectedSources)
+  }, [nodes, selectedSources]);
 
   const handleNodeClick = React.useCallback(
     (

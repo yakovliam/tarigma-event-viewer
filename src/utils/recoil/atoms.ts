@@ -61,7 +61,7 @@ const eventsState = atom({
 
 const selectedSources = atom({
   key: "selectedSources",
-  default: [] as TreeNodeInfo[],
+  default: { tree: [] as TreeNodeInfo[], comtradeSources: [] as any},
 });
 
 export {
