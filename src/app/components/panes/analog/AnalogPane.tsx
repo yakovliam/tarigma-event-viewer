@@ -7,6 +7,8 @@ import {
   VictoryChart,
   VictoryZoomContainer,
   DomainTuple,
+  VictoryLine,
+  CanvasGroup,
 } from "victory";
 import { MouseEvent, useEffect, useRef, useState } from "react";
 import useDimensions from "react-cool-dimensions";
@@ -237,7 +239,15 @@ const AnalogPane = (props: AnalogPaneProps) => {
           }}
           dependentAxis
         />
-
+        <VictoryLine
+          groupComponent={<CanvasGroup />}
+          interpolation={"natural"}
+          style={{
+            data: { stroke: "blue" },
+          }}
+          samples={100}
+          y={(d) => 2.3 * Math.sin(0.33 * Math.PI + 10 * Math.PI * d.x)}
+        />
         {/* <VictoryLine
           groupComponent={<CanvasGroup />}
           interpolation={"natural"}

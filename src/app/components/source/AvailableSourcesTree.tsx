@@ -93,7 +93,7 @@ const comtradeToTree = (eventsState: Comtrade[]): TreeNodeInfo[] => {
       id: comtrade.eventId,
       icon: "folder-close",
       isExpanded: false,
-      label: `${comtrade.config.stationName}`,
+      label: `${comtrade.eventId + ": " + comtrade.config.stationName}`,
       childNodes: [],
     };
 
@@ -129,6 +129,7 @@ const comtradeToTree = (eventsState: Comtrade[]): TreeNodeInfo[] => {
         icon: "folder-close",
         isExpanded: false,
         label: `Digital Sources`,
+        parent: comtrade.id,
         childNodes: [],
       } as StricterTreeNodeInfo<stricterChildNodes>);
 

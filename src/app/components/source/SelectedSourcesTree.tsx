@@ -6,6 +6,7 @@ import { Classes, Tree, TreeNode, TreeNodeInfo } from "@blueprintjs/core";
 import { selectorFamily, useRecoilState, useRecoilValue } from "recoil";
 import { isEqual } from "lodash";
 import Comtrade from "../../../types/data/comtrade/comtrade";
+import { defualtsource } from "./defsource"
 
 type NodePath = number[];
 
@@ -75,7 +76,7 @@ const treeNodesToComtradeData = (
   nodes: TreeNodeInfo[],
   comtrade: Comtrade[]
 ) => {
-  const comtradeData = {analog: [] as any, digital: [] as any}
+  const comtradeData = { analog: [] as any, digital: [] as any };
   const iterate = (obj: any) => {
     if (obj.childNodes) {
       for (const child of obj.childNodes) {
@@ -91,8 +92,7 @@ const treeNodesToComtradeData = (
             return analog.info.label === obj.label;
           });
 
-        if(analogComtradeEvent)
-        comtradeData.analog.push(analogComtradeEvent)
+        if (analogComtradeEvent) comtradeData.analog.push(analogComtradeEvent);
       } else {
         const digitalComtradeEvent = comtrade
           .find((event) => {
@@ -102,17 +102,15 @@ const treeNodesToComtradeData = (
             return digital.info.label === obj.label;
           });
 
-        if(digitalComtradeEvent)
-        comtradeData.digital.push(digitalComtradeEvent)
+        if (digitalComtradeEvent) comtradeData.digital.push(digitalComtradeEvent);
       }
     }
-
   };
 
   for (const folder of nodes) {
     iterate(folder);
   }
-  return comtradeData
+  return comtradeData;
 };
 
 export const SelectedSourcesTree = (props: any) => {
@@ -124,6 +122,10 @@ export const SelectedSourcesTree = (props: any) => {
     SelectedReducer,
     selectedSources.tree
   );
+
+  // EXAMPLE DATA
+  if(!process.env.NODE_ENV || process.env.NODE_ENV === 'development')
+  setSelectedSources(defualtsource as any)
 
   React.useEffect(() => {
     if (props.selectedSources.id != null) {
@@ -137,7 +139,10 @@ export const SelectedSourcesTree = (props: any) => {
 
   React.useEffect(() => {
     if (!isEqual(nodes, selectedSources.tree)) {
-      setSelectedSources({ tree: nodes, comtradeSources: treeNodesToComtradeData(nodes, comtrades) });
+      setSelectedSources({
+        tree: nodes,
+        comtradeSources: treeNodesToComtradeData(nodes, comtrades),
+      });
     }
     console.log(selectedSources)
   }, [nodes, selectedSources]);

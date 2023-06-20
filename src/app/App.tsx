@@ -21,6 +21,7 @@ import { blueprintThemeClassName } from "../types/blueprint/theme-utils";
 import { Popover2 } from "@blueprintjs/popover2";
 import { userFriendlyTypeMap } from "../types/mosaic/tiles";
 import getExampleData from "../utils/exampledata/getExampleData";
+import { useEffect } from "react";
 
 
 const AppWrapper = styled.div`
@@ -37,6 +38,7 @@ const NavbarWrapper = styled.div`
 function App() {
   if(!process.env.NODE_ENV || process.env.NODE_ENV === 'development')
   getExampleData()
+  
   
   const [blueprintTheme, setBlueprintTheme] = useRecoilState(
     blueprintThemeRepository
