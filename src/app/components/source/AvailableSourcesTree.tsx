@@ -76,7 +76,7 @@ interface stricterChildNodes {
   id: number;
   icon: string;
   label: string;
-  type: string;
+  parent: string;
 }
 
 // This was an attempt to force childnodes to not be possibly typed as undefined,
@@ -85,7 +85,7 @@ interface StricterTreeNodeInfo<T> extends TreeNodeInfo {
   childNodes: Array<TreeNodeInfo<any>>;
 }
 
-const comtradeToTree = (eventsState: Comtrade[]): TreeNodeInfo[] => {
+const analogComtradeToTree = (eventsState: Comtrade[]): TreeNodeInfo[] => {
   const tree: TreeNodeInfo[] = [];
 
   for (const comtrade of eventsState) {
@@ -98,55 +98,20 @@ const comtradeToTree = (eventsState: Comtrade[]): TreeNodeInfo[] => {
     };
 
     if (comtrade.analogChannels != null) {
+
       const analogChannels = comtrade.analogChannels;
-      folder.childNodes.push({
-        id: comtrade.eventId,
-        icon: "folder-close",
-        isExpanded: false,
-        label: `Analog Sources`,
-        childNodes: [],
-      } as StricterTreeNodeInfo<stricterChildNodes>);
 
       for (let i = 0; i < analogChannels.length; i++) {
-        const analogChildnodes = folder.childNodes.find(
-          (obj) => obj.label === "Analog Sources"
-        );
-        if (analogChildnodes?.childNodes)
-          analogChildnodes.childNodes.push({
+          folder.childNodes.push({
             id: i,
             icon: "pulse",
             label: `${analogChannels[i].info.label}`,
             type: "analog",
             parent: comtrade.id
-          } as any);
+          } as unknown as StricterTreeNodeInfo<stricterChildNodes>);
       }
     }
 
-    if (comtrade.digitalChannels != null) {
-      const digitalChannels = comtrade.digitalChannels;
-      folder.childNodes.push({
-        id: comtrade.eventId,
-        icon: "folder-close",
-        isExpanded: false,
-        label: `Digital Sources`,
-        parent: comtrade.id,
-        childNodes: [],
-      } as StricterTreeNodeInfo<stricterChildNodes>);
-
-      for (let i = 0; i < digitalChannels.length; i++) {
-        const digitalChildnodes = folder.childNodes.find(
-          (obj) => obj.label === "Digital Sources"
-        );
-        if (digitalChildnodes?.childNodes)
-          digitalChildnodes.childNodes.push({
-            id: i,
-            icon: "grid-view",
-            label: `${digitalChannels[i].info.label}`,
-            type: "digital",
-            parent: comtrade.id
-          } as any);
-      }
-    }
     tree.push(folder);
   }
 
@@ -163,7 +128,7 @@ export const AvailableSourcesTree = (props: any) => {
   React.useEffect(() => {
     dispatch({
       type: "COMTRADE_ADDED",
-      payload: { tree: comtradeToTree(eventsState) },
+      payload: { tree: analogComtradeToTree(eventsState) },
     });
   }, [eventsState]);
 

@@ -16,6 +16,7 @@
     "@types/lodash": "^4.14.194",
     "@types/papaparse": "^5.3.7",
     "add": "^2.0.6",
+    "crypto-js": "^4.1.1",
     "lodash": "^4.17.21",
     "papaparse": "^5.4.1",
     "react": "^18.2.0",
@@ -33,6 +34,7 @@
     "yarn": "^1.22.19"
   },
   "devDependencies": {
+    "@types/crypto-js": "^4.1.1",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "@types/styled-components": "^5.1.26",

@@ -17,6 +17,7 @@ import {
   domainToPixels,
 } from "../../../../utils/domain/domain-utils";
 import { cursorsState as cursorsStateAtom } from "../../../../utils/recoil/atoms";
+import { selectedSources as globalSelectedSources } from "../../../../utils/recoil/atoms";
 import {
   Button,
   Card,
@@ -25,11 +26,14 @@ import {
   DialogFooter,
 } from "@blueprintjs/core";
 import SourcePickerDialogContent from "../../source/SourcePickerDialogContent";
+import React from "react";
+import { numberToUniqueColor } from "../../../../utils/helpers/numberToUniqueColor";
+import TimestampedValue from "../../../../types/data/comtrade/channel/timestamped-value";
 
 const leftPadding = 50;
 const rightPadding = 20;
 const minDomainX = 0;
-const maxDomainX = 10;
+const maxDomainX = 200;
 
 type PointerIcon = "default" | "ew-resize";
 
@@ -38,8 +42,12 @@ interface AnalogPaneProps {
 }
 
 const AnalogPane = (props: AnalogPaneProps) => {
-  const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
+  const [initZoomDomainY, setInitZoomDomainY] = useState({
+    min: -3000,
+    max: 3000,
+  });
 
+  const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
   const { observe, unobserve, width, height } = useDimensions();
   const paneRef = useRef<HTMLDivElement | null>(null);
 
@@ -49,7 +57,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
 
   const [zoomDomain, setZoomDomain] = useState({
     x: [minDomainX, maxDomainX],
-    y: [-2.5, 2.5],
+    y: [initZoomDomainY.min, initZoomDomainY.max],
   } as {
     x: DomainTuple;
     y: DomainTuple;
@@ -57,6 +65,9 @@ const AnalogPane = (props: AnalogPaneProps) => {
   const [hookedCursor, setHookedCursor] = useState<string | null>(null);
   const [pointerIcon, setPointerIcon] = useState("default" as PointerIcon);
   const [cursorsState, setCursorsState] = useRecoilState(cursorsStateAtom);
+  const [selectedSources, setSelectedSources] = useRecoilState(
+    globalSelectedSources
+  );
 
   const updateCursorsState = (cursorId: string, x: number) => {
     setCursorsState((oldCursorsState) => {
@@ -135,7 +146,91 @@ const AnalogPane = (props: AnalogPaneProps) => {
    * END CURSOR LOGIC -------------------------------------------------------------
    */
 
+  function calcmaxdomain(arr: TimestampedValue[]): number | null {
+    // iterate over analog values until the changes between values is insignifigant too many times
+    let acc = 0;
+    let smallchanges = 0
+    for (let i = 0; i < arr.length; i++) {
+      if (!Number.isNaN(Number(arr[i].value))) {
+        const v = Number(arr[i].value);
+        acc += v;
+        if(acc - acc-v < 5){
+          smallchanges += 1
+        }
+        if(smallchanges > 60){
+          return i
+        }
+      }
+    }
+    return null;
+  }
+
+  const dynamicMinMaxRangeDomain = () => {
+    const analogsources = selectedSources.comtradeSources;
+    if (analogsources.length != 0) {
+      const highestRange = analogsources.reduce((prev, current) =>
+        prev.info.max > current.info.max ? prev : current
+      );
+      const min = Number(highestRange.info.min) - 500;
+      const max = Number(highestRange.info.max) + 500;
+      
+      setInitZoomDomainY({ min: min, max: max });
+
+      
+      const maxdomain = calcmaxdomain(highestRange.values);
+      if(maxdomain){
+        setZoomDomain({ x: [minDomainX, maxdomain], y: [min, max] });
+      }
+    }
+    console.log(zoomDomain)
+
+    return;
+  };
+
   const [sourcesIsOpen, setSourcesIsOpen] = useState(false);
+
+  const [analogLines, setAnalogLines] = useState<JSX.Element[]>([]);
+
+  const comtradeSourcesToVictoryLines = () => {
+    const lines = [];
+
+    const analogsources = selectedSources.comtradeSources;
+
+    if (analogsources) {
+      for (let i = 0; i < analogsources.length; i++) {
+        const arr = analogsources[i].values;
+
+        const data = [];
+
+        let i2 = 0;
+        for (const source of arr) {
+          //hacky and bad, we really need to fix this type
+          if (!Number.isNaN(Number(source.value)))
+            data.push({ x: i2, y: Number(source.value) });
+          i2++;
+        }
+
+        lines.push(
+          <VictoryLine
+            key={i}
+            groupComponent={<CanvasGroup />}
+            interpolation={"natural"}
+            style={{
+              data: { stroke: numberToUniqueColor(i) },
+            }}
+            data={data}
+            samples={100}
+          />
+        );
+      }
+    }
+    setAnalogLines(lines);
+  };
+
+  useEffect(() => {
+    comtradeSourcesToVictoryLines();
+    dynamicMinMaxRangeDomain();
+  }, [selectedSources]);
 
   return (
     <PaneWrapper
@@ -207,8 +302,8 @@ const AnalogPane = (props: AnalogPaneProps) => {
           left: leftPadding,
           right: rightPadding,
         }}
-        minDomain={{ x: minDomainX, y: -2.5 }}
-        maxDomain={{ x: maxDomainX, y: 2.5 }}
+        minDomain={{ x: minDomainX, y: initZoomDomainY.min }}
+        maxDomain={{ x: maxDomainX, y: initZoomDomainY.max }}
         containerComponent={
           <VictoryZoomContainer
             zoomDomain={zoomDomain}
@@ -239,15 +334,9 @@ const AnalogPane = (props: AnalogPaneProps) => {
           }}
           dependentAxis
         />
-        <VictoryLine
-          groupComponent={<CanvasGroup />}
-          interpolation={"natural"}
-          style={{
-            data: { stroke: "blue" },
-          }}
-          samples={100}
-          y={(d) => 2.3 * Math.sin(0.33 * Math.PI + 10 * Math.PI * d.x)}
-        />
+
+        {analogLines}
+
         {/* <VictoryLine
           groupComponent={<CanvasGroup />}
           interpolation={"natural"}

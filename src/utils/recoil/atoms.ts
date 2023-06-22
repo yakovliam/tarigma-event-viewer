@@ -5,6 +5,8 @@ import { MosaicTilesRepository } from "../../types/mosaic/tiles";
 import CursorState from "../../types/cursor/cursor-state";
 import Comtrade from "../../types/data/comtrade/comtrade";
 import { TreeNodeInfo } from "@blueprintjs/core";
+import AnalogChannel from "../../types/data/comtrade/channel/analog/analog-channel";
+import DigitalChannel from "../../types/data/comtrade/channel/digital/digital-channel";
 
 const defaultBlueprintTheme: BlueprintTheme = "Blueprint" as BlueprintTheme;
 const blueprintThemeRepository = atom({
@@ -61,7 +63,7 @@ const eventsState = atom({
 
 const selectedSources = atom({
   key: "selectedSources",
-  default: { tree: [] as TreeNodeInfo[], comtradeSources: [] as any},
+  default: { tree: [] as TreeNodeInfo[], comtradeSources: [] as unknown as AnalogChannel[]},
 });
 
 export {

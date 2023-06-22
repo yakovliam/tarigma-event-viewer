@@ -70,7 +70,6 @@ const EventsPane = (props: EventsPaneProps) => {
         };
       })
     );
-    console.log(eventsState)
   }, [eventsState]);
 
   const addEvent = () => {

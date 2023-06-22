@@ -80,6 +80,7 @@ const parseChannels = (
         values: output,
         info,
         multiplier: 1,
+        label: undefined
       };
 
       analogChannels.push(analogChannel);
