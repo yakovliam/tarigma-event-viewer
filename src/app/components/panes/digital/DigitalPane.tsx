@@ -16,6 +16,7 @@ import {
   domainToPixels,
   pixelsToDomain,
 } from "../../../../utils/domain/domain-utils";
+import { selectedDigitalSources as globalSelectedDigitalSources } from "../../../../utils/recoil/atoms";
 import { cursorsState as cursorsStateAtom } from "../../../../utils/recoil/atoms";
 import { Card } from "@blueprintjs/core/lib/esm/components/card/card";
 import {
@@ -49,7 +50,16 @@ const DigitalPane = (props: DigitalPaneProps) => {
       click: false,
     });
 
+  const [selectedSources, setSelectedSources] = useRecoilState(
+    globalSelectedDigitalSources
+  );
 
+  const digitalSources = selectedSources.comtradeSources;
+
+  if(digitalSources)
+  {
+    // TODO actually deal with the data
+  }
 
   /**
    * CURSOR LOGIC -------------------------------------------------------------

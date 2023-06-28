@@ -17,7 +17,7 @@ import {
   domainToPixels,
 } from "../../../../utils/domain/domain-utils";
 import { cursorsState as cursorsStateAtom } from "../../../../utils/recoil/atoms";
-import { selectedSources as globalSelectedSources } from "../../../../utils/recoil/atoms";
+import { selectedAnalogSources as globalSelectedAnalogSources } from "../../../../utils/recoil/atoms";
 import {
   Button,
   Card,
@@ -67,7 +67,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
   const [pointerIcon, setPointerIcon] = useState("default" as PointerIcon);
   const [cursorsState, setCursorsState] = useRecoilState(cursorsStateAtom);
   const [selectedSources, setSelectedSources] = useRecoilState(
-    globalSelectedSources
+    globalSelectedAnalogSources
   );
 
   const updateCursorsState = (cursorId: string, x: number) => {
@@ -169,6 +169,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
   const dynamicMinMaxRangeDomain = () => {
     const analogsources = selectedSources.comtradeSources;
     if (analogsources.length != 0) {
+      // TODO some ts error here needs fixing
       const highestRange = analogsources.reduce((prev: { info: { max: number; }; }, current: { info: { max: number; }; }) =>
         prev.info.max > current.info.max ? prev : current
       );

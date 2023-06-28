@@ -1,7 +1,10 @@
 import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
 import { eventsState as eventsStateAtom } from "../../../utils/recoil/atoms";
-import { selectedSources as globalSelectedSources } from "../../../utils/recoil/atoms";
+import {
+  selectedAnalogSources as globalSelectedAnalogSources,
+  selectedDigitalSources as globalSelectedDigitalSources,
+} from "../../../utils/recoil/atoms";
 import {
   Classes,
   Icon,
@@ -16,6 +19,7 @@ import Comtrade from "../../../types/data/comtrade/comtrade";
 import AnalogChannel from "../../../types/data/comtrade/channel/analog/analog-channel";
 import DigitalChannel from "../../../types/data/comtrade/channel/digital/digital-channel";
 import { sourcesButtonState } from "../../../types/data/sourcesTree/analog/sourceTypes";
+import AnalogChannelInfo from "../../../types/data/comtrade/config/analog-channel-info";
 
 type NodePath = number[];
 
@@ -120,10 +124,10 @@ export type selectedSourcesTreeProps = {
 
 export const SelectedSourcesTree = (props: selectedSourcesTreeProps) => {
   const [selectedSourcesAnalog, setSelectedSourcesAnalog] = useRecoilState(
-    globalSelectedSources
+    globalSelectedAnalogSources
   );
   const [selectedSourcesDigital, setSelectedSourcesDigital] = useRecoilState(
-    globalSelectedSources
+    globalSelectedDigitalSources
   );
   const comtrades = useRecoilValue(eventsStateAtom);
   const [nodes, dispatch] = React.useReducer(
@@ -169,7 +173,7 @@ export const SelectedSourcesTree = (props: selectedSourcesTreeProps) => {
             nodes,
             comtrades,
             props.isDigital
-          ),
+          ) as DigitalChannel[],
         });
       } else {
         setSelectedSourcesAnalog({
@@ -178,7 +182,7 @@ export const SelectedSourcesTree = (props: selectedSourcesTreeProps) => {
             nodes,
             comtrades,
             props.isDigital
-          ),
+          ) as AnalogChannel[],
         });
       }
     }

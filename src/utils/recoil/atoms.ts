@@ -61,9 +61,20 @@ const eventsState = atom({
   default: [] as Comtrade[],
 });
 
-const selectedSources = atom({
-  key: "selectedSources",
-  default: { tree: [] as TreeNodeInfo[], comtradeSources: [] as unknown as AnalogChannel[] | DigitalChannel[]},
+const selectedAnalogSources = atom({
+  key: "selectedAnalogSources",
+  default: {
+    tree: [] as TreeNodeInfo[],
+    comtradeSources: [] as unknown as AnalogChannel[],
+  },
+});
+
+const selectedDigitalSources = atom({
+  key: "selecteDigitalSources",
+  default: {
+    tree: [] as TreeNodeInfo[],
+    comtradeSources: [] as unknown as DigitalChannel[],
+  },
 });
 
 export {
@@ -72,6 +83,7 @@ export {
   blueprintThemeRepository,
   cursorsState,
   eventsState,
-  selectedSources,
+  selectedAnalogSources,
+  selectedDigitalSources,
   getTile,
 };
