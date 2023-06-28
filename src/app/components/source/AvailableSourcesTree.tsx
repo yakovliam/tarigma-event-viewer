@@ -1,7 +1,7 @@
 import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
 import { eventsState as eventsStateAtom } from "../../../utils/recoil/atoms";
-import { Classes, Tree, TreeNode, TreeNodeInfo } from "@blueprintjs/core";
+import { Classes, Icon, Tree, TreeNode, TreeNodeInfo } from "@blueprintjs/core";
 import { useRecoilValue } from "recoil";
 import Comtrade from "../../../types/data/comtrade/comtrade";
 import AnalogChannel from "../../../types/data/comtrade/channel/analog/analog-channel";
@@ -107,7 +107,8 @@ const analogComtradeToTree = (eventsState: Comtrade[]): TreeNodeInfo[] => {
             icon: "pulse",
             label: `${analogChannels[i].info.label}`,
             type: "analog",
-            parent: comtrade.id
+            parent: comtrade.id,
+            secondaryLabel: <Icon icon="add-to-artifact" />
           } as unknown as StricterTreeNodeInfo<stricterChildNodes>);
       }
     }

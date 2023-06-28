@@ -2,7 +2,7 @@ import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
 import { eventsState as eventsStateAtom } from "../../../utils/recoil/atoms";
 import { selectedSources as globalSelectedSources } from "../../../utils/recoil/atoms";
-import { Classes, Tree, TreeNode, TreeNodeInfo } from "@blueprintjs/core";
+import { Classes, Icon, Tree, TreeNode, TreeNodeInfo } from "@blueprintjs/core";
 import { selectorFamily, useRecoilState, useRecoilValue } from "recoil";
 import { isEqual } from "lodash";
 import Comtrade from "../../../types/data/comtrade/comtrade";
@@ -67,6 +67,7 @@ function SelectedReducer(state: TreeNodeInfo[], action: TreeAction) {
       newState.splice(index, 1);
       return newState;
     case "ADD_FOLDER":
+//      action.payload.addednode.secondaryLabel = <Icon icon="cross" />
       return [...newState, action.payload.addednode] as TreeNodeInfo[];
     default:
       return state;

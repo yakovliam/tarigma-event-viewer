@@ -149,16 +149,16 @@ const AnalogPane = (props: AnalogPaneProps) => {
   function calcmaxdomain(arr: TimestampedValue[]): number | null {
     // iterate over analog values until the changes between values is insignifigant too many times
     let acc = 0;
-    let smallchanges = 0
+    let smallchanges = 0;
     for (let i = 0; i < arr.length; i++) {
       if (!Number.isNaN(Number(arr[i].value))) {
         const v = Number(arr[i].value);
         acc += v;
-        if(acc - acc-v < 5){
-          smallchanges += 1
+        if (acc - acc - v < 5) {
+          smallchanges += 1;
         }
-        if(smallchanges > 60){
-          return i
+        if (smallchanges > 60) {
+          return i;
         }
       }
     }
@@ -173,21 +173,30 @@ const AnalogPane = (props: AnalogPaneProps) => {
       );
       const min = Number(highestRange.info.min) - 500;
       const max = Number(highestRange.info.max) + 500;
-      
+
       setInitZoomDomainY({ min: min, max: max });
 
-      
       const maxdomain = calcmaxdomain(highestRange.values);
-      if(maxdomain){
+      if (maxdomain) {
         setZoomDomain({ x: [minDomainX, maxdomain], y: [min, max] });
       }
     }
-    console.log(zoomDomain)
+    console.log(zoomDomain);
 
     return;
   };
 
   const [sourcesIsOpen, setSourcesIsOpen] = useState(false);
+
+  interface clickSelectedSourceint {
+    text: "select a source" | "click to remove this source" | "click to add this source",
+    state: boolean
+  }
+
+  const [clickSelectedSource, setClickSelectedSource] = useState<clickSelectedSourceint>({
+    text: "select a source",
+    state: false,
+  });
 
   const [analogLines, setAnalogLines] = useState<JSX.Element[]>([]);
 
@@ -231,6 +240,32 @@ const AnalogPane = (props: AnalogPaneProps) => {
     comtradeSourcesToVictoryLines();
     dynamicMinMaxRangeDomain();
   }, [selectedSources]);
+
+  const SelectedSourceButton = (): React.ReactElement => {
+    return (
+      <Button
+          intent="primary"
+          onClick={() => {
+            setClickSelectedSource({
+              ...clickSelectedSource,
+              state: !clickSelectedSource.state,
+            });
+          }}
+        >
+          {JSON.stringify(clickSelectedSource)}
+        </Button>
+      );
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setClickSelectedSource({
+        ...clickSelectedSource,
+        text: "click to remove this source",
+      });
+    }, 1000);
+    return () => clearTimeout(timer);
+  });
 
   return (
     <PaneWrapper
@@ -404,6 +439,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
               Close
             </Button>
           }
+          children={<SelectedSourceButton />}
         />
       </Dialog>
     </PaneWrapper>
