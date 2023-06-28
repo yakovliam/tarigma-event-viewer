@@ -3,6 +3,7 @@ import DigitalPane from "../../app/components/panes/digital/DigitalPane";
 import EventsPane from "../../app/components/panes/events/EventsPane";
 import { MosaicTile } from "../../types/mosaic/tile";
 import { MosaicTileType } from "../../types/mosaic/tiles";
+import SymmetricComponentPane from "../../app/components/panes/symmetric-components/SymmetricComponentPane";
 import { v4 as uuidv4 } from "uuid";
 
 export const createInstance = (
@@ -23,6 +24,9 @@ export const createInstance = (
       break;
     case "digital":
       tileContent = <DigitalPane viewId={id} />;
+      break;
+    case "symmetric-components":
+      tileContent = <SymmetricComponentPane viewId={id} />;
       break;
     default:
       tileContent = <div>Unknown tile type</div>;

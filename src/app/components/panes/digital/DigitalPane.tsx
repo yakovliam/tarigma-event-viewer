@@ -17,6 +17,15 @@ import {
   pixelsToDomain,
 } from "../../../../utils/domain/domain-utils";
 import { cursorsState as cursorsStateAtom } from "../../../../utils/recoil/atoms";
+import { Card } from "@blueprintjs/core/lib/esm/components/card/card";
+import {
+  Button,
+  Dialog,
+  DialogBody,
+  DialogFooter,
+} from "@blueprintjs/core/lib/esm/components";
+import SourcePickerDialogContent from "../../source/SourcePickerDialogContent";
+import { clickSelectedSourceint } from "../../../../types/data/sourcesTree/analog/sourceTypes";
 const leftPadding = 50;
 const rightPadding = 20;
 const minDomainX = 0;
@@ -31,6 +40,14 @@ interface DigitalPaneProps {
 const DigitalPane = (props: DigitalPaneProps) => {
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
   const { observe, unobserve, width, height } = useDimensions();
+
+  const [sourcesIsOpen, setSourcesIsOpen] = useState(false);
+
+  const [clickSelectedSource, setClickSelectedSource] =
+    useState<clickSelectedSourceint>({
+      text: "select a source",
+      click: false,
+    });
 
   /**
    * CURSOR LOGIC -------------------------------------------------------------
@@ -226,6 +243,66 @@ const DigitalPane = (props: DigitalPaneProps) => {
           ]}
         />
       </VictoryChart>
+      <Card
+        style={{
+          padding: "4px",
+        }}
+      >
+        <Button
+          minimal
+          icon="database"
+          onClick={() => {
+            setSourcesIsOpen(!sourcesIsOpen);
+          }}
+        />
+      </Card>
+      <Dialog
+        title="Sources"
+        isOpen={sourcesIsOpen}
+        icon="database"
+        onClose={() => {
+          setSourcesIsOpen(false);
+        }}
+        style={{
+          // override blueprint style
+          width: "700px",
+        }}
+      >
+        <DialogBody useOverflowScrollContainer>
+          <SourcePickerDialogContent
+            viewId={props.viewId}
+            sourcesButton={{
+              selectedSources: clickSelectedSource,
+              setSelectedSources: setClickSelectedSource,
+            }}
+          />
+        </DialogBody>
+        <DialogFooter
+          actions={
+            <Button
+              intent="primary"
+              onClick={() => {
+                setSourcesIsOpen(false);
+              }}
+            >
+              Close
+            </Button>
+          }
+          children={
+            <Button
+              intent="primary"
+              onClick={() => {
+                setClickSelectedSource({
+                  ...clickSelectedSource,
+                  click: !clickSelectedSource.click,
+                });
+              }}
+            >
+              {JSON.stringify(clickSelectedSource)}
+            </Button>
+          }
+        />
+      </Dialog>
     </PaneWrapper>
   );
 };
