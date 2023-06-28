@@ -49,6 +49,8 @@ const DigitalPane = (props: DigitalPaneProps) => {
       click: false,
     });
 
+
+
   /**
    * CURSOR LOGIC -------------------------------------------------------------
    */
@@ -271,6 +273,7 @@ const DigitalPane = (props: DigitalPaneProps) => {
         <DialogBody useOverflowScrollContainer>
           <SourcePickerDialogContent
             viewId={props.viewId}
+            isDigital={true}
             sourcesButton={{
               selectedSources: clickSelectedSource,
               setSelectedSources: setClickSelectedSource,

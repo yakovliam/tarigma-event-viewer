@@ -201,66 +201,6 @@ const SymmetricComponentPane = (props: SymmetricComponentPaneProps) => {
           standalone={false}
         />
       </VictoryChart>
-      <Card
-        style={{
-          padding: "4px",
-        }}
-      >
-        <Button
-          minimal
-          icon="database"
-          onClick={() => {
-            setSourcesIsOpen(!sourcesIsOpen);
-          }}
-        />
-      </Card>
-      <Dialog
-        title="Sources"
-        isOpen={sourcesIsOpen}
-        icon="database"
-        onClose={() => {
-          setSourcesIsOpen(false);
-        }}
-        style={{
-          // override blueprint style
-          width: "700px",
-        }}
-      >
-        <DialogBody useOverflowScrollContainer>
-          <SourcePickerDialogContent
-            viewId={props.viewId}
-            sourcesButton={{
-              selectedSources: clickSelectedSource,
-              setSelectedSources: setClickSelectedSource,
-            }}
-          />
-        </DialogBody>
-        <DialogFooter
-          actions={
-            <Button
-              intent="primary"
-              onClick={() => {
-                setSourcesIsOpen(false);
-              }}
-            >
-              Close
-            </Button>
-          }
-          children={
-            <Button
-              intent="primary"
-              onClick={() => {
-                setClickSelectedSource({
-                  ...clickSelectedSource,
-                  click: !clickSelectedSource.click,
-                });
-              }}
-            >
-              {JSON.stringify(clickSelectedSource)}
-            </Button>
-          }
-        />
-      </Dialog>
     </PaneWrapper>
   );
 };

@@ -84,36 +84,51 @@ function SelectedReducer(state: TreeNodeInfo[], action: TreeAction) {
 
 const treeNodesToComtradeData = (
   nodes: TreeNodeInfo[],
-  comtrade: Comtrade[]
+  comtrade: Comtrade[],
+  isDigital: boolean
 ) => {
-  const comtradeData = [] as AnalogChannel[];
+  if (isDigital) {
+    const comtradeData = [] as DigitalChannel[];
 
-  for (const folder of nodes as any) {
-    console.log(folder);
-    const parent = comtrade.find((obj) => obj.id == folder.parent);
-    const source = parent?.analogChannels.find(
-      (obj) => obj.info.label == folder.label
-    );
-    //to handle undefined
-    if (source) comtradeData.push(source);
+    for (const folder of nodes as any) {
+      const parent = comtrade.find((obj) => obj.id == folder.parent);
+      const source = parent?.digitalChannels.find(
+        (obj) => obj.info.label == folder.label
+      );
+      if (source) comtradeData.push(source);
+    }
+    return comtradeData;
+  } else {
+    const comtradeData = [] as AnalogChannel[];
+
+    for (const folder of nodes as any) {
+      const parent = comtrade.find((obj) => obj.id == folder.parent);
+      const source = parent?.analogChannels.find(
+        (obj) => obj.info.label == folder.label
+      );
+      if (source) comtradeData.push(source);
+    }
+    return comtradeData;
   }
-
-  return comtradeData;
 };
 
 export type selectedSourcesTreeProps = {
   selectedSources: TreeNodeInfo | undefined;
   buttonState: sourcesButtonState;
+  isDigital: boolean;
 };
 
 export const SelectedSourcesTree = (props: selectedSourcesTreeProps) => {
-  const [selectedSources, setSelectedSources] = useRecoilState(
+  const [selectedSourcesAnalog, setSelectedSourcesAnalog] = useRecoilState(
+    globalSelectedSources
+  );
+  const [selectedSourcesDigital, setSelectedSourcesDigital] = useRecoilState(
     globalSelectedSources
   );
   const comtrades = useRecoilValue(eventsStateAtom);
   const [nodes, dispatch] = React.useReducer(
     SelectedReducer,
-    selectedSources.tree
+    props.isDigital ? selectedSourcesDigital.tree : selectedSourcesAnalog.tree
   );
 
   React.useEffect(() => {
@@ -139,13 +154,41 @@ export const SelectedSourcesTree = (props: selectedSourcesTreeProps) => {
   }, [props.buttonState.selectedSources.click, props.selectedSources]);
 
   React.useEffect(() => {
-    if (!isEqual(nodes, selectedSources.tree)) {
-      setSelectedSources({
-        tree: nodes,
-        comtradeSources: treeNodesToComtradeData(nodes, comtrades),
-      });
+    if (
+      !isEqual(
+        nodes,
+        props.isDigital
+          ? selectedSourcesDigital.tree
+          : selectedSourcesAnalog.tree
+      )
+    ) {
+      if (props.isDigital) {
+        setSelectedSourcesDigital({
+          tree: nodes,
+          comtradeSources: treeNodesToComtradeData(
+            nodes,
+            comtrades,
+            props.isDigital
+          ),
+        });
+      } else {
+        setSelectedSourcesAnalog({
+          tree: nodes,
+          comtradeSources: treeNodesToComtradeData(
+            nodes,
+            comtrades,
+            props.isDigital
+          ),
+        });
+      }
     }
-  }, [comtrades, nodes, selectedSources, setSelectedSources]);
+  }, [
+    comtrades,
+    nodes,
+    setSelectedSourcesDigital,
+    setSelectedSourcesAnalog,
+    props.isDigital,
+  ]);
 
   const handleNodeClick = React.useCallback(
     (

@@ -12,6 +12,7 @@ import {
 
 type SourcePickerDialogContentProps = {
   viewId: string;
+  isDigital: boolean;
   sourcesButton: sourcesButtonState;
 };
 
@@ -43,6 +44,7 @@ const TreeWrapper = styled.div`
 
 const SourcePickerDialogContent = (props: SourcePickerDialogContentProps) => {
   const [selectedSources, setSelectedSources] = useState<TreeNodeInfo>();
+  const [isDigital] = useState<boolean>(props.isDigital);
 
   useEffect(() => {
     console.log(props.sourcesButton.selectedSources);
@@ -65,8 +67,8 @@ const SourcePickerDialogContent = (props: SourcePickerDialogContentProps) => {
                 selectedSources: selectedSources,
                 setSelectedSources: setSelectedSources,
               }}
-
               buttonState={props.sourcesButton}
+              isDigital={isDigital}
             />
           </TreeWrapper>
         </Card>
@@ -75,7 +77,11 @@ const SourcePickerDialogContent = (props: SourcePickerDialogContentProps) => {
         <Card style={{ padding: "10px", height: "100%", width: "100%" }}>
           <Text>Selected Sources</Text>
           <TreeWrapper>
-            <SelectedSourcesTree selectedSources={selectedSources} buttonState={props.sourcesButton}/>
+            <SelectedSourcesTree
+              selectedSources={selectedSources}
+              buttonState={props.sourcesButton}
+              isDigital={isDigital}
+            />
           </TreeWrapper>
         </Card>
       </SidePanelWrapper>

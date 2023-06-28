@@ -169,7 +169,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
   const dynamicMinMaxRangeDomain = () => {
     const analogsources = selectedSources.comtradeSources;
     if (analogsources.length != 0) {
-      const highestRange = analogsources.reduce((prev, current) =>
+      const highestRange = analogsources.reduce((prev: { info: { max: number; }; }, current: { info: { max: number; }; }) =>
         prev.info.max > current.info.max ? prev : current
       );
       const min = Number(highestRange.info.min) - 500;
@@ -399,6 +399,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
         <DialogBody useOverflowScrollContainer>
           <SourcePickerDialogContent
             viewId={props.viewId}
+            isDigital={false}
             sourcesButton={{
               selectedSources: clickSelectedSource,
               setSelectedSources: setClickSelectedSource,

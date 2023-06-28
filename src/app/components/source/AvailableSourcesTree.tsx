@@ -62,7 +62,10 @@ interface StricterTreeNodeInfo<T> extends TreeNodeInfo {
   childNodes: Array<TreeNodeInfo<any>>;
 }
 
-const analogComtradeToTree = (eventsState: Comtrade[]): TreeNodeInfo[] => {
+const comtradeToTree = (
+  eventsState: Comtrade[],
+  isDigital: boolean
+): TreeNodeInfo[] => {
   const tree: TreeNodeInfo[] = [];
 
   for (const comtrade of eventsState) {
@@ -74,15 +77,17 @@ const analogComtradeToTree = (eventsState: Comtrade[]): TreeNodeInfo[] => {
       childNodes: [],
     };
 
-    if (comtrade.analogChannels != null) {
-      const analogChannels = comtrade.analogChannels;
+    const channels = isDigital
+      ? comtrade.digitalChannels
+      : comtrade.analogChannels;
 
-      for (let i = 0; i < analogChannels.length; i++) {
+    if (channels != null) {
+      for (let i = 0; i < channels.length; i++) {
         folder.childNodes.push({
           id: i,
-          icon: "pulse",
-          label: `${analogChannels[i].info.label}`,
-          type: "analog",
+          icon: isDigital ? "alignment-vertical-center": "pulse",
+          label: `${channels[i].info.label}`,
+          type: isDigital ? "digital" : "analog",
           parent: comtrade.id,
           secondaryLabel: <Icon icon="add-to-artifact" />,
         } as unknown as StricterTreeNodeInfo<stricterChildNodes>);
@@ -98,6 +103,7 @@ const analogComtradeToTree = (eventsState: Comtrade[]): TreeNodeInfo[] => {
 export type availableSourcesTreeProps = {
   selectedSourceState: selectedSourceState;
   buttonState: sourcesButtonState;
+  isDigital: boolean;
 };
 
 export const AvailableSourcesTree = (props: availableSourcesTreeProps) => {
@@ -141,9 +147,9 @@ export const AvailableSourcesTree = (props: availableSourcesTreeProps) => {
   React.useEffect(() => {
     dispatch({
       type: "COMTRADE_ADDED",
-      payload: { tree: analogComtradeToTree(eventsState) },
+      payload: { tree: comtradeToTree(eventsState, props.isDigital) },
     });
-  }, [eventsState]);
+  }, [eventsState, props.isDigital]);
 
   React.useEffect(() => {
     console.log(props.buttonState.selectedSources);
