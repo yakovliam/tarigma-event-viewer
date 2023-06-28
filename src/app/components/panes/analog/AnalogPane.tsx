@@ -29,6 +29,7 @@ import SourcePickerDialogContent from "../../source/SourcePickerDialogContent";
 import React from "react";
 import { numberToUniqueColor } from "../../../../utils/helpers/numberToUniqueColor";
 import TimestampedValue from "../../../../types/data/comtrade/channel/timestamped-value";
+import { clickSelectedSourceint } from "../../../../types/data/sourcesTree/analog/sourceTypes";
 
 const leftPadding = 50;
 const rightPadding = 20;
@@ -188,15 +189,11 @@ const AnalogPane = (props: AnalogPaneProps) => {
 
   const [sourcesIsOpen, setSourcesIsOpen] = useState(false);
 
-  interface clickSelectedSourceint {
-    text: "select a source" | "click to remove this source" | "click to add this source",
-    state: boolean
-  }
-
-  const [clickSelectedSource, setClickSelectedSource] = useState<clickSelectedSourceint>({
-    text: "select a source",
-    state: false,
-  });
+  const [clickSelectedSource, setClickSelectedSource] =
+    useState<clickSelectedSourceint>({
+      text: "select a source",
+      click: false,
+    });
 
   const [analogLines, setAnalogLines] = useState<JSX.Element[]>([]);
 
@@ -240,32 +237,6 @@ const AnalogPane = (props: AnalogPaneProps) => {
     comtradeSourcesToVictoryLines();
     dynamicMinMaxRangeDomain();
   }, [selectedSources]);
-
-  const SelectedSourceButton = (): React.ReactElement => {
-    return (
-      <Button
-          intent="primary"
-          onClick={() => {
-            setClickSelectedSource({
-              ...clickSelectedSource,
-              state: !clickSelectedSource.state,
-            });
-          }}
-        >
-          {JSON.stringify(clickSelectedSource)}
-        </Button>
-      );
-  };
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setClickSelectedSource({
-        ...clickSelectedSource,
-        text: "click to remove this source",
-      });
-    }, 1000);
-    return () => clearTimeout(timer);
-  });
 
   return (
     <PaneWrapper
@@ -426,7 +397,13 @@ const AnalogPane = (props: AnalogPaneProps) => {
         }}
       >
         <DialogBody useOverflowScrollContainer>
-          <SourcePickerDialogContent viewId={props.viewId} />
+          <SourcePickerDialogContent
+            viewId={props.viewId}
+            sourcesButton={{
+              selectedSources: clickSelectedSource,
+              setSelectedSources: setClickSelectedSource,
+            }}
+          />
         </DialogBody>
         <DialogFooter
           actions={
@@ -439,7 +416,19 @@ const AnalogPane = (props: AnalogPaneProps) => {
               Close
             </Button>
           }
-          children={<SelectedSourceButton />}
+          children={
+            <Button
+              intent="primary"
+              onClick={() => {
+                setClickSelectedSource({
+                  ...clickSelectedSource,
+                  click: !clickSelectedSource.click,
+                });
+              }}
+            >
+              {JSON.stringify(clickSelectedSource)}
+            </Button>
+          }
         />
       </Dialog>
     </PaneWrapper>

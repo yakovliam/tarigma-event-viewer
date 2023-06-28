@@ -2,12 +2,20 @@ import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
 import { eventsState as eventsStateAtom } from "../../../utils/recoil/atoms";
 import { selectedSources as globalSelectedSources } from "../../../utils/recoil/atoms";
-import { Classes, Icon, Tree, TreeNode, TreeNodeInfo } from "@blueprintjs/core";
+import {
+  Classes,
+  Icon,
+  Tree,
+  TreeNode,
+  TreeNodeInfo,
+  Button,
+} from "@blueprintjs/core";
 import { selectorFamily, useRecoilState, useRecoilValue } from "recoil";
 import { isEqual } from "lodash";
 import Comtrade from "../../../types/data/comtrade/comtrade";
 import AnalogChannel from "../../../types/data/comtrade/channel/analog/analog-channel";
 import DigitalChannel from "../../../types/data/comtrade/channel/digital/digital-channel";
+import { sourcesButtonState } from "../../../types/data/sourcesTree/analog/sourceTypes";
 
 type NodePath = number[];
 
@@ -67,7 +75,7 @@ function SelectedReducer(state: TreeNodeInfo[], action: TreeAction) {
       newState.splice(index, 1);
       return newState;
     case "ADD_FOLDER":
-//      action.payload.addednode.secondaryLabel = <Icon icon="cross" />
+      //      action.payload.addednode.secondaryLabel = <Icon icon="cross" />
       return [...newState, action.payload.addednode] as TreeNodeInfo[];
     default:
       return state;
@@ -81,18 +89,24 @@ const treeNodesToComtradeData = (
   const comtradeData = [] as AnalogChannel[];
 
   for (const folder of nodes as any) {
-    console.log(folder)
-    const parent = comtrade.find(obj => obj.id == folder.parent)
-    const source = parent?.analogChannels.find(obj => obj.info.label == folder.label)
+    console.log(folder);
+    const parent = comtrade.find((obj) => obj.id == folder.parent);
+    const source = parent?.analogChannels.find(
+      (obj) => obj.info.label == folder.label
+    );
     //to handle undefined
-    if(source)
-    comtradeData.push(source)
+    if (source) comtradeData.push(source);
   }
 
   return comtradeData;
 };
 
-export const SelectedSourcesTree = (props: any) => {
+export type selectedSourcesTreeProps = {
+  selectedSources: TreeNodeInfo | undefined;
+  buttonState: sourcesButtonState;
+};
+
+export const SelectedSourcesTree = (props: selectedSourcesTreeProps) => {
   const [selectedSources, setSelectedSources] = useRecoilState(
     globalSelectedSources
   );
@@ -103,14 +117,26 @@ export const SelectedSourcesTree = (props: any) => {
   );
 
   React.useEffect(() => {
-    if (props.selectedSources.id != null) {
+    console.log(props.buttonState.selectedSources);
+  }, [props.buttonState]);
+
+  React.useEffect(() => {
+    if (
+      props.selectedSources &&
+      props.selectedSources.id != null &&
+      props.buttonState.selectedSources.click
+    ) {
       dispatch({ type: "DESELECT_ALL" });
       dispatch({
         payload: { addednode: props.selectedSources },
         type: "ADD_FOLDER",
       });
+      props.buttonState.setSelectedSources({
+        ...props.buttonState.selectedSources,
+        click: false,
+      });
     }
-  }, [props.selectedSources]);
+  }, [props.buttonState.selectedSources.click, props.selectedSources]);
 
   React.useEffect(() => {
     if (!isEqual(nodes, selectedSources.tree)) {

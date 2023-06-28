@@ -1,13 +1,18 @@
 import { useRecoilValue } from "recoil";
 import { eventsState as eventsStateAtom } from "../../../utils/recoil/atoms";
 import { styled } from "styled-components";
-import { Card, Text } from "@blueprintjs/core";
+import { Card, Text, Tree, TreeNodeInfo } from "@blueprintjs/core";
 import { AvailableSourcesTree } from "./AvailableSourcesTree";
-import { SelectedSourcesTree } from "./SelectedSourcesTree"
-import { useState } from "react";
+import { SelectedSourcesTree } from "./SelectedSourcesTree";
+import { useEffect, useState } from "react";
+import {
+  sourcesButtonState,
+  selectedSourceState,
+} from "../../../types/data/sourcesTree/analog/sourceTypes";
 
 type SourcePickerDialogContentProps = {
   viewId: string;
+  sourcesButton: sourcesButtonState;
 };
 
 const DoublePanelWrapper = styled.div`
@@ -37,8 +42,11 @@ const TreeWrapper = styled.div`
 `;
 
 const SourcePickerDialogContent = (props: SourcePickerDialogContentProps) => {
-  const [selectedSources, setSelectedSources] = useState({})
-  const eventsState = useRecoilValue(eventsStateAtom);
+  const [selectedSources, setSelectedSources] = useState<TreeNodeInfo>();
+
+  useEffect(() => {
+    console.log(props.sourcesButton.selectedSources);
+  }, [props.sourcesButton]);
 
   return (
     <DoublePanelWrapper>
@@ -52,7 +60,14 @@ const SourcePickerDialogContent = (props: SourcePickerDialogContentProps) => {
         >
           <Text>Available Sources (viewId: {props.viewId})</Text>
           <TreeWrapper>
-            <AvailableSourcesTree setselected={setSelectedSources} sourcevalue={selectedSources}/>
+            <AvailableSourcesTree
+              selectedSourceState={{
+                selectedSources: selectedSources,
+                setSelectedSources: setSelectedSources,
+              }}
+
+              buttonState={props.sourcesButton}
+            />
           </TreeWrapper>
         </Card>
       </SidePanelWrapper>
@@ -60,7 +75,7 @@ const SourcePickerDialogContent = (props: SourcePickerDialogContentProps) => {
         <Card style={{ padding: "10px", height: "100%", width: "100%" }}>
           <Text>Selected Sources</Text>
           <TreeWrapper>
-            <SelectedSourcesTree selectedSources={selectedSources}/>
+            <SelectedSourcesTree selectedSources={selectedSources} buttonState={props.sourcesButton}/>
           </TreeWrapper>
         </Card>
       </SidePanelWrapper>

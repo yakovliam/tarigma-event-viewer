@@ -5,6 +5,10 @@ import { Classes, Icon, Tree, TreeNode, TreeNodeInfo } from "@blueprintjs/core";
 import { useRecoilValue } from "recoil";
 import Comtrade from "../../../types/data/comtrade/comtrade";
 import AnalogChannel from "../../../types/data/comtrade/channel/analog/analog-channel";
+import {
+  selectedSourceState,
+  sourcesButtonState,
+} from "../../../types/data/sourcesTree/analog/sourceTypes";
 
 type NodePath = number[];
 
@@ -45,33 +49,6 @@ function forNodeAtPath(
   callback(Tree.nodeFromPath(path, nodes));
 }
 
-function AvailableReducer(state: TreeNodeInfo[], action: TreeAction) {
-  const newState = cloneDeep(state);
-  switch (action.type) {
-    case "DESELECT_ALL":
-      forEachNode(newState, (node) => (node.isSelected = false));
-      return newState;
-    case "SET_IS_EXPANDED":
-      forNodeAtPath(
-        newState,
-        action.payload.path,
-        (node) => (node.isExpanded = action.payload.isExpanded)
-      );
-      return newState;
-    case "SET_IS_SELECTED":
-      forNodeAtPath(
-        newState,
-        action.payload.path,
-        (node) => (node.isSelected = action.payload.isSelected)
-      );
-      return newState;
-    case "COMTRADE_ADDED":
-      return action.payload.tree;
-    default:
-      return state;
-  }
-}
-
 interface stricterChildNodes {
   id: number;
   icon: string;
@@ -98,18 +75,17 @@ const analogComtradeToTree = (eventsState: Comtrade[]): TreeNodeInfo[] => {
     };
 
     if (comtrade.analogChannels != null) {
-
       const analogChannels = comtrade.analogChannels;
 
       for (let i = 0; i < analogChannels.length; i++) {
-          folder.childNodes.push({
-            id: i,
-            icon: "pulse",
-            label: `${analogChannels[i].info.label}`,
-            type: "analog",
-            parent: comtrade.id,
-            secondaryLabel: <Icon icon="add-to-artifact" />
-          } as unknown as StricterTreeNodeInfo<stricterChildNodes>);
+        folder.childNodes.push({
+          id: i,
+          icon: "pulse",
+          label: `${analogChannels[i].info.label}`,
+          type: "analog",
+          parent: comtrade.id,
+          secondaryLabel: <Icon icon="add-to-artifact" />,
+        } as unknown as StricterTreeNodeInfo<stricterChildNodes>);
       }
     }
 
@@ -119,7 +95,43 @@ const analogComtradeToTree = (eventsState: Comtrade[]): TreeNodeInfo[] => {
   return tree;
 };
 
-export const AvailableSourcesTree = (props: any) => {
+export type availableSourcesTreeProps = {
+  selectedSourceState: selectedSourceState;
+  buttonState: sourcesButtonState;
+};
+
+export const AvailableSourcesTree = (props: availableSourcesTreeProps) => {
+  function AvailableReducer(state: TreeNodeInfo[], action: TreeAction) {
+    const newState = cloneDeep(state);
+    switch (action.type) {
+      case "DESELECT_ALL":
+        forEachNode(newState, (node) => (node.isSelected = false));
+        return newState;
+      case "SET_IS_EXPANDED":
+        forNodeAtPath(
+          newState,
+          action.payload.path,
+          (node) => (node.isExpanded = action.payload.isExpanded)
+        );
+        return newState;
+      case "SET_IS_SELECTED":
+        forNodeAtPath(
+          newState,
+          action.payload.path,
+          (node) => (node.isSelected = action.payload.isSelected)
+        );
+        props.buttonState.setSelectedSources({
+          ...props.buttonState.selectedSources,
+          text: "click to add this source",
+        });
+        return newState;
+      case "COMTRADE_ADDED":
+        return action.payload.tree;
+      default:
+        return state;
+    }
+  }
+
   const eventsState = useRecoilValue(eventsStateAtom);
   const [nodes, dispatch] = React.useReducer(
     AvailableReducer,
@@ -132,6 +144,10 @@ export const AvailableSourcesTree = (props: any) => {
       payload: { tree: analogComtradeToTree(eventsState) },
     });
   }, [eventsState]);
+
+  React.useEffect(() => {
+    console.log(props.buttonState.selectedSources);
+  }, [props.buttonState]);
 
   const handleNodeClick = React.useCallback(
     (
@@ -150,7 +166,7 @@ export const AvailableSourcesTree = (props: any) => {
         },
         type: "SET_IS_SELECTED",
       });
-      props.setselected(node);
+      props.selectedSourceState.setSelectedSources(node);
     },
     []
   );
