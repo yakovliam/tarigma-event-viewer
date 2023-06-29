@@ -42,11 +42,7 @@ const TreeWrapper = styled.div`
 `;
 
 const SourcePickerDialogContent = (props: SourcePickerDialogContentProps) => {
-  const [selectedSources, setSelectedSources] = useState<TreeNodeInfo>();
-
-  useEffect(() => {
-    console.log(props.sourcesButton.selectedSources);
-  }, [props.sourcesButton]);
+  const [selectedSources, setSelectedSources] = useState<TreeNodeInfo[]>();
 
   return (
     <DoublePanelWrapper>

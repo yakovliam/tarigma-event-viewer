@@ -15,6 +15,6 @@ export interface sourcesButtonState {
 }
 
 export interface selectedSourceState {
-  selectedSources: TreeNodeInfo | undefined;
-  setSelectedSources: Dispatch<SetStateAction<TreeNodeInfo | undefined>>;
+  selectedSources: TreeNodeInfo[] | undefined;
+  setSelectedSources: Dispatch<SetStateAction<TreeNodeInfo[] | undefined>>;
 }

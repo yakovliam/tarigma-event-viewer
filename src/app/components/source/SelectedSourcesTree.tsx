@@ -102,7 +102,7 @@ const treeNodesToComtradeData = (
 };
 
 export type selectedSourcesTreeProps = {
-  selectedSources: TreeNodeInfo | undefined;
+  selectedSources: TreeNodeInfo[] | undefined;
   buttonState: sourcesButtonState;
 };
 
@@ -117,26 +117,25 @@ export const SelectedSourcesTree = (props: selectedSourcesTreeProps) => {
   );
 
   React.useEffect(() => {
-    console.log(props.buttonState.selectedSources);
-  }, [props.buttonState]);
-
-  React.useEffect(() => {
-    if (
-      props.selectedSources &&
-      props.selectedSources.id != null &&
-      props.buttonState.selectedSources.click
-    ) {
-      dispatch({ type: "DESELECT_ALL" });
-      dispatch({
-        payload: { addednode: props.selectedSources },
-        type: "ADD_FOLDER",
-      });
-      props.buttonState.setSelectedSources({
-        ...props.buttonState.selectedSources,
-        click: false,
-      });
-    }
-  }, [props.buttonState.selectedSources.click, props.selectedSources]);
+    if (props.selectedSources)
+      for (const source of props.selectedSources) {
+        if (source.id != null && props.buttonState.selectedSources.click) {
+          dispatch({ type: "DESELECT_ALL" });
+          dispatch({
+            payload: { addednode: source },
+            type: "ADD_FOLDER",
+          });
+          props.buttonState.setSelectedSources({
+            ...props.buttonState.selectedSources,
+            click: false,
+          });
+        }
+      }
+  }, [
+    props.buttonState,
+    props.buttonState.selectedSources.click,
+    props.selectedSources,
+  ]);
 
   React.useEffect(() => {
     if (!isEqual(nodes, selectedSources.tree)) {

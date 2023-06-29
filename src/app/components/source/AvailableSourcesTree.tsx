@@ -9,6 +9,7 @@ import {
   selectedSourceState,
   sourcesButtonState,
 } from "../../../types/data/sourcesTree/analog/sourceTypes";
+import { useStateCallback } from "../../../utils/helpers/useStateCallback";
 
 type NodePath = number[];
 
@@ -145,9 +146,9 @@ export const AvailableSourcesTree = (props: availableSourcesTreeProps) => {
     });
   }, [eventsState]);
 
-  React.useEffect(() => {
-    console.log(props.buttonState.selectedSources);
-  }, [props.buttonState]);
+  const [clickedSources, setClickedSources] = useStateCallback<TreeNodeInfo[]>(
+    []
+  );
 
   const handleNodeClick = React.useCallback(
     (
@@ -156,9 +157,7 @@ export const AvailableSourcesTree = (props: availableSourcesTreeProps) => {
       e: React.MouseEvent<HTMLElement>
     ) => {
       const originallySelected = node.isSelected;
-      if (!e.shiftKey) {
-        dispatch({ type: "DESELECT_ALL" });
-      }
+
       dispatch({
         payload: {
           path: nodePath,
@@ -166,9 +165,12 @@ export const AvailableSourcesTree = (props: availableSourcesTreeProps) => {
         },
         type: "SET_IS_SELECTED",
       });
-      props.selectedSourceState.setSelectedSources(node);
+
+      setClickedSources([...clickedSources, node], (e) =>
+        props.selectedSourceState.setSelectedSources(e)
+      );
     },
-    []
+    [clickedSources, props.selectedSourceState]
   );
 
   const handleNodeCollapse = React.useCallback(
