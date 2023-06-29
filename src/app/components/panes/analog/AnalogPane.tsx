@@ -34,8 +34,8 @@ import TimestampedValue from "../../../../types/data/comtrade/channel/timestampe
 import EmptyMosaicInfo from "../../empty/EmptyMosaicInfo";
 import EmptyChartInfo from "../../empty/EmptyChartInfo";
 
-const leftPadding = 50;
-const rightPadding = 20;
+const leftPadding = 55;
+const rightPadding = 0;
 const initMinDomainX = 0;
 const initMaxDomainX = 10;
 const initMinDomainY = -1000;
@@ -220,6 +220,9 @@ const AnalogPane = (props: AnalogPaneProps) => {
       onMouseUp={() => {
         unhookCursor();
       }}
+      // onMouseDown={(e: MouseEvent) => {
+      //   e.stopPropagation();
+      // }}
       onMouseMove={handleMouseMove}
     >
       {selectedSources.length > 0 &&
@@ -257,13 +260,14 @@ const AnalogPane = (props: AnalogPaneProps) => {
                     zoomDomain.x[0] as number,
                     zoomDomain.x[1] as number,
                     leftPadding,
-                    width - rightPadding
+                    // the minus 40 accounts for the width of the card
+                    width - 40 - rightPadding
                   )}px`,
                   top: "0px",
                   height: "100%",
                   width: "6px",
                   backgroundColor: cursor.color,
-                  zIndex: 1,
+                  zIndex: 0,
                 }}
               />
             );
