@@ -16,7 +16,7 @@ import {
   domainToPixels,
   pixelsToDomain,
 } from "../../../../utils/domain/domain-utils";
-import { cursorsState as cursorsStateAtom } from "../../../../utils/recoil/atoms";
+import { cursorsStateAtom } from "../../../../utils/recoil/atoms";
 const leftPadding = 50;
 const rightPadding = 20;
 const minDomainX = 0;

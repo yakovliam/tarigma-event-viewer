@@ -3,7 +3,6 @@ import { blueprintThemeRepository } from "../../../../utils/recoil/atoms";
 import { isDarkTheme } from "../../../../types/blueprint/theme-utils";
 import PaneWrapper from "../PaneWrapper";
 import {
-  Alignment,
   Button,
   Card,
   Classes,
@@ -14,7 +13,7 @@ import {
   Text,
 } from "@blueprintjs/core";
 import { styled } from "styled-components";
-import { eventsState as eventsStateAtom } from "../../../../utils/recoil/atoms";
+import { eventsStateAtom } from "../../../../utils/recoil/atoms";
 import Comtrade from "../../../../types/data/comtrade/comtrade";
 import { useEffect, useState } from "react";
 import {

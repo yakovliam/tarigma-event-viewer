@@ -1,1 +1,1 @@
-export type ChannelTypeAliasType = 'analog' | 'digital' | 'symmetric';
+export type ChannelTypeAliasType = 'analog' | 'digital';

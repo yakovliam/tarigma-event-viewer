@@ -1,4 +1,4 @@
-import DataSource from "../data/data-source";
+import AnalogDataSource from "../data/data-source";
 import { MosaicTileType } from "./tiles";
 
 export type MosaicTile = {
@@ -6,5 +6,5 @@ export type MosaicTile = {
   type: MosaicTileType;
   element: JSX.Element;
   title: string;
-  dataSources: DataSource[];
+  dataSources: AnalogDataSource[];
 };

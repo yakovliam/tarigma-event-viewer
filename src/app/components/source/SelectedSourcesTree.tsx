@@ -5,7 +5,6 @@ import { Classes, Tree, TreeNodeInfo } from "@blueprintjs/core";
 import AnalogDataSource from "../../../types/data/data-source";
 import Comtrade from "../../../types/data/comtrade/comtrade";
 import { useEffect } from "react";
-import { convertComtradeAnalogChannelToDataSource } from "../../../utils/sources/sources-converter-util";
 
 type NodePath = number[];
 
@@ -70,7 +69,7 @@ function treeExampleReducer(state: TreeNodeInfo[], action: TreeAction) {
   }
 }
 
-export type AvailableSourcesTreeProps = {
+export type SelectedSourcesTreeProps = {
   selectedSources: AnalogDataSource[];
   events: Comtrade[];
   updateSelectedSources: (sources: AnalogDataSource[]) => void;
@@ -81,11 +80,11 @@ type AnalogDataSourceNodeData = {
   name: string;
 };
 
-export const AvailableSourcesTree = ({
+export const SelectedSourcesTree = ({
   selectedSources,
   events,
   updateSelectedSources,
-}: AvailableSourcesTreeProps) => {
+}: SelectedSourcesTreeProps) => {
   const [nodes, dispatch] = React.useReducer(treeExampleReducer, INITIAL_STATE);
 
   const handleNodeClick = React.useCallback(
@@ -113,12 +112,12 @@ export const AvailableSourcesTree = ({
         return;
       }
 
-      const dataSource = convertComtradeAnalogChannelToDataSource(
-        channel,
-        event
+      // remove the source from the selected sources
+      const newSelectedSources = selectedSources.filter(
+        (source) => source.channel.info.label !== channel.info.label
       );
 
-      updateSelectedSources([...selectedSources, dataSource]);
+      updateSelectedSources(newSelectedSources);
     },
     [events, selectedSources, updateSelectedSources]
   );
@@ -144,34 +143,59 @@ export const AvailableSourcesTree = ({
   );
 
   useEffect(() => {
-    const treeNodes: TreeNodeInfo[] = events.flatMap((event) => {
-      const eventIsExpanded: boolean = nodes.some(
+    const treeNodes: TreeNodeInfo[] = [];
+
+    // find all unique events that are present in the selected sources
+    const selectedEvents: Comtrade[] = [];
+    selectedSources.forEach((source) => {
+      const comtradeId = source.comtradeId;
+      const comtrade = events.find((event) => event.id === comtradeId);
+      if (
+        selectedEvents.find((event) => event.id === comtradeId) === undefined &&
+        comtrade !== undefined
+      ) {
+        selectedEvents.push(comtrade);
+      }
+    });
+
+    // create a tree node for each event
+    selectedEvents.forEach((event) => {
+      const eventIsExpanded = nodes.some(
         (node) => node.id === event.id && node.isExpanded
       );
-      // event should be a folder
-      return {
+      const eventNode: TreeNodeInfo = {
         id: event.id,
         hasCaret: true,
         icon: "folder-close",
         label: event.config.stationName,
         isExpanded: eventIsExpanded,
-        childNodes: event.analogChannels.map((channel) => {
-          const dataSource = convertComtradeAnalogChannelToDataSource(
-            channel,
-            event
-          );
+      };
 
-          return {
-            id: dataSource.channel.info.label,
+      // get all sources that are part of this event that are selected
+      const applicableSourcesToEvent = selectedSources.filter(
+        (source) => source.comtradeId === event.id
+      );
+      // create a tree node for each source
+      const sourceNodes: TreeNodeInfo[] = applicableSourcesToEvent.map(
+        (source) => {
+          const sourceNode: TreeNodeInfo = {
+            id: source.channel.info.label,
             icon: "pulse",
-            label: dataSource.channel.info.label,
+            label: source.name,
             nodeData: {
               eventId: event.id,
-              name: dataSource.channel.info.label,
+              name: source.channel.info.label,
             } as AnalogDataSourceNodeData,
           };
-        }),
-      };
+          return sourceNode;
+        }
+      );
+
+      // add the source nodes to the event node
+      eventNode.childNodes = sourceNodes;
+
+      // add the event node to the tree
+      treeNodes.push(eventNode);
     });
 
     dispatch({ type: "RE_INITIALIZE", payload: treeNodes });
@@ -211,4 +235,4 @@ const INITIAL_STATE: TreeNodeInfo[] = [
   // },
 ];
 
-export default AvailableSourcesTree;
+export default SelectedSourcesTree;

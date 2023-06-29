@@ -1,12 +1,17 @@
 import { useRecoilState, useRecoilValue } from "recoil";
 import { isDarkTheme } from "../../../../types/blueprint/theme-utils";
-import { blueprintThemeRepository } from "../../../../utils/recoil/atoms";
+import {
+  blueprintThemeRepository,
+  eventsStateAtom,
+} from "../../../../utils/recoil/atoms";
 import PaneWrapper from "../PaneWrapper";
 import {
   VictoryAxis,
   VictoryChart,
   VictoryZoomContainer,
   DomainTuple,
+  CanvasGroup,
+  VictoryLine,
 } from "victory";
 import { MouseEvent, useEffect, useRef, useState } from "react";
 import useDimensions from "react-cool-dimensions";
@@ -14,7 +19,7 @@ import {
   pixelsToDomain,
   domainToPixels,
 } from "../../../../utils/domain/domain-utils";
-import { cursorsState as cursorsStateAtom } from "../../../../utils/recoil/atoms";
+import { cursorsStateAtom } from "../../../../utils/recoil/atoms";
 import {
   Button,
   Card,
@@ -23,11 +28,18 @@ import {
   DialogFooter,
 } from "@blueprintjs/core";
 import SourcePickerDialogContent from "../../source/SourcePickerDialogContent";
+import AnalogDataSource from "../../../../types/data/data-source";
+import { max, min } from "lodash";
+import TimestampedValue from "../../../../types/data/comtrade/channel/timestamped-value";
+import EmptyMosaicInfo from "../../empty/EmptyMosaicInfo";
+import EmptyChartInfo from "../../empty/EmptyChartInfo";
 
 const leftPadding = 50;
 const rightPadding = 20;
-const minDomainX = 0;
-const maxDomainX = 10;
+const initMinDomainX = 0;
+const initMaxDomainX = 10;
+const initMinDomainY = -1000;
+const initMaxDomainY = 1000;
 
 type PointerIcon = "default" | "ew-resize";
 
@@ -41,17 +53,24 @@ const AnalogPane = (props: AnalogPaneProps) => {
   const { observe, unobserve, width, height } = useDimensions();
   const paneRef = useRef<HTMLDivElement | null>(null);
 
-  /**
-   * CURSOR LOGIC -------------------------------------------------------------
-   */
+  const [minDomainX, setMinDomainX] = useState(initMinDomainX);
+  const [maxDomainX, setMaxDomainX] = useState(initMaxDomainX);
+
+  const [minDomainY, setMinDomainY] = useState(initMinDomainY);
+  const [maxDomainY, setMaxDomainY] = useState(initMaxDomainY);
 
   const [zoomDomain, setZoomDomain] = useState({
-    x: [minDomainX, maxDomainX],
-    y: [-2.5, 2.5],
+    x: [initMinDomainX, initMaxDomainX],
+    y: [initMinDomainY, initMaxDomainY],
   } as {
     x: DomainTuple;
     y: DomainTuple;
   });
+
+  /**
+   * CURSOR LOGIC -------------------------------------------------------------
+   */
+
   const [hookedCursor, setHookedCursor] = useState<string | null>(null);
   const [pointerIcon, setPointerIcon] = useState("default" as PointerIcon);
   const [cursorsState, setCursorsState] = useRecoilState(cursorsStateAtom);
@@ -92,9 +111,6 @@ const AnalogPane = (props: AnalogPaneProps) => {
     x: DomainTuple;
     y: DomainTuple;
   }) => {
-    if (hookedCursor) {
-      return;
-    } // should be removable
     setZoomDomain(domain);
   };
 
@@ -134,6 +150,62 @@ const AnalogPane = (props: AnalogPaneProps) => {
    */
 
   const [sourcesIsOpen, setSourcesIsOpen] = useState(false);
+  const [selectedSources, setSelectedSources] = useState<AnalogDataSource[]>(
+    []
+  );
+  const [events, setEvents] = useRecoilState(eventsStateAtom);
+
+  const updateSelectedSources = (sources: AnalogDataSource[]) => {
+    setSelectedSources(sources);
+  };
+
+  useEffect(() => {
+    // update min and max domain x and y
+    if (selectedSources.length === 0) {
+      return;
+    }
+
+    const maxDX = Math.max(
+      ...selectedSources.flatMap((source) => {
+        return source.channel.values.map((value) => {
+          return value.timestamp;
+        });
+      })
+    );
+
+    const minDY = Math.min(
+      ...selectedSources.flatMap((source) => {
+        return source.channel.values.map((value) => {
+          return value.value as number;
+        });
+      })
+    );
+
+    const maxDY = Math.max(
+      ...selectedSources.flatMap((source) => {
+        return source.channel.values.map((value) => {
+          return value.value as number;
+        });
+      })
+    );
+
+    setMinDomainX(0);
+    setMaxDomainX(maxDX);
+    setMinDomainY(minDY);
+    setMaxDomainY(maxDY);
+
+    setZoomDomain({
+      x: [0, maxDX],
+      y: [minDY, maxDY],
+    });
+  }, [
+    selectedSources,
+    setZoomDomain,
+    setMinDomainX,
+    setMaxDomainX,
+    setMinDomainY,
+    setMaxDomainY,
+  ]);
 
   return (
     <PaneWrapper
@@ -150,125 +222,120 @@ const AnalogPane = (props: AnalogPaneProps) => {
       }}
       onMouseMove={handleMouseMove}
     >
-      {cursorsState
-        .filter((cursor) => {
-          return cursor.x !== null && cursor.x !== undefined;
-        })
-        .map((cursor) => {
-          if (!cursor.x) {
-            return null;
-          }
-          return (
-            <div
-              key={cursor.id}
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                hookCursor(cursor.id);
-              }}
-              onMouseEnter={() => {
-                setPointerIcon("ew-resize");
-              }}
-              onMouseLeave={() => {
-                setPointerIcon("default");
-              }}
-              style={{
-                cursor: pointerIcon,
-                display:
-                  cursor.x >= (zoomDomain.x[0] as number) &&
-                  cursor.x <= (zoomDomain.x[1] as number)
-                    ? "block"
-                    : "none",
-                position: "absolute",
-                left: `${domainToPixels(
-                  cursor.x,
-                  zoomDomain.x[0] as number,
-                  zoomDomain.x[1] as number,
-                  leftPadding,
-                  width - rightPadding
-                )}px`,
-                top: "0px",
-                height: "100%",
-                width: "6px",
-                backgroundColor: cursor.color,
-                zIndex: 1,
-              }}
+      {selectedSources.length > 0 &&
+        cursorsState
+          .filter((cursor) => {
+            return cursor.x !== null && cursor.x !== undefined;
+          })
+          .map((cursor) => {
+            if (!cursor.x) {
+              return null;
+            }
+            return (
+              <div
+                key={cursor.id}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  hookCursor(cursor.id);
+                }}
+                onMouseEnter={() => {
+                  setPointerIcon("ew-resize");
+                }}
+                onMouseLeave={() => {
+                  setPointerIcon("default");
+                }}
+                style={{
+                  cursor: pointerIcon,
+                  display:
+                    cursor.x >= (zoomDomain.x[0] as number) &&
+                    cursor.x <= (zoomDomain.x[1] as number)
+                      ? "block"
+                      : "none",
+                  position: "absolute",
+                  left: `${domainToPixels(
+                    cursor.x,
+                    zoomDomain.x[0] as number,
+                    zoomDomain.x[1] as number,
+                    leftPadding,
+                    width - rightPadding
+                  )}px`,
+                  top: "0px",
+                  height: "100%",
+                  width: "6px",
+                  backgroundColor: cursor.color,
+                  zIndex: 1,
+                }}
+              />
+            );
+          })}
+      {selectedSources.length > 0 ? (
+        <VictoryChart
+          width={width}
+          height={height}
+          padding={{
+            top: 10,
+            bottom: 33,
+            left: leftPadding,
+            right: rightPadding,
+          }}
+          minDomain={{ x: minDomainX, y: minDomainY }}
+          maxDomain={{ x: maxDomainX, y: maxDomainY }}
+          containerComponent={
+            <VictoryZoomContainer
+              zoomDomain={zoomDomain}
+              zoomDimension="x"
+              onZoomDomainChange={handleZoomDomainChange}
+              // downsample
             />
-          );
-        })}
-
-      <VictoryChart
-        width={width}
-        height={height}
-        padding={{
-          top: 10,
-          bottom: 33,
-          left: leftPadding,
-          right: rightPadding,
-        }}
-        minDomain={{ x: minDomainX, y: -2.5 }}
-        maxDomain={{ x: maxDomainX, y: 2.5 }}
-        containerComponent={
-          <VictoryZoomContainer
-            zoomDomain={zoomDomain}
-            zoomDimension="x"
-            onZoomDomainChange={handleZoomDomainChange}
+          }
+        >
+          <VictoryAxis
+            offsetY={30}
+            style={{
+              axis: { stroke: "#756f6a" },
+              grid: {
+                stroke: "#c5aeae",
+              },
+              ticks: { stroke: "gray", size: 8 },
+              tickLabels: { fontSize: 15, padding: 0 },
+            }}
+            tickFormat={(x) => `${x} ms`}
           />
-        }
-      >
-        <VictoryAxis
-          offsetY={30}
-          style={{
-            axis: { stroke: "#756f6a" },
-            grid: {
-              stroke: "#c5aeae",
-            },
-            ticks: { stroke: "gray", size: 8 },
-            tickLabels: { fontSize: 15, padding: 0 },
-          }}
-          tickFormat={(x) => `${x} ms`}
-        />
-        <VictoryAxis
-          label={"Voltage (V)"}
-          style={{
-            axis: { stroke: "#000000" },
-            grid: {
-              stroke: "#c5aeae",
-            },
-          }}
-          dependentAxis
-        />
-
-        {/* <VictoryLine
-          groupComponent={<CanvasGroup />}
-          interpolation={"natural"}
-          style={{
-            data: { stroke: "blue" },
-          }}
-          samples={100}
-          y={(d) => Math.sin(10 * Math.PI * d.x)}
-        />
-        <VictoryLine
-          groupComponent={<CanvasGroup />}
-          interpolation={"natural"}
-          style={{
-            data: { stroke: "red" },
-          }}
-          samples={100}
-          y={(d) => 2 * Math.sin(Math.PI + 10 * Math.PI * d.x)}
-        />
-        <VictoryLine
-          groupComponent={<CanvasGroup />}
-          interpolation={"natural"}
-          style={{
-            data: { stroke: "#ff9c3f" },
-          }}
-          samples={100}
-          y={(d) => 2.3 * Math.sin(0.33 * Math.PI + 10 * Math.PI * d.x)}
-        /> */}
-      </VictoryChart>
+          <VictoryAxis
+            label={"Voltage (V)"}
+            style={{
+              axis: { stroke: "#000000" },
+              grid: {
+                stroke: "#c8c8c8",
+              },
+            }}
+            dependentAxis
+          />
+          {selectedSources.map((source) => {
+            return (
+              <VictoryLine
+                key={source.name}
+                groupComponent={<CanvasGroup />}
+                interpolation={"natural"}
+                style={{
+                  data: { stroke: "red" },
+                }}
+                samples={source.channel.values.length}
+                x={(d) => parseFloat(d.timestamp)}
+                y={(d) => parseFloat(d.value)}
+                data={source.channel.values}
+              />
+            );
+          })}
+        </VictoryChart>
+      ) : (
+        <EmptyChartInfo />
+      )}
       <Card
         style={{
           padding: "4px",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         <Button
@@ -278,6 +345,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
             setSourcesIsOpen(!sourcesIsOpen);
           }}
         />
+        <Button minimal icon="settings" />
       </Card>
       <Dialog
         title="Sources"
@@ -292,7 +360,10 @@ const AnalogPane = (props: AnalogPaneProps) => {
         }}
       >
         <DialogBody useOverflowScrollContainer>
-          <SourcePickerDialogContent viewId={props.viewId} />
+          <SourcePickerDialogContent
+            selectedSources={selectedSources}
+            updateSelectedSources={updateSelectedSources}
+          />
         </DialogBody>
         <DialogFooter
           actions={
