@@ -6,7 +6,6 @@ import datalocal from "./data";
 import { eventsState } from "../recoil/atoms";
 import useAsyncEffect from "use-async-effect";
 import { useEffect } from "react";
-import { selectedSources as globalSelectedSources } from "../recoil/atoms";
 import { defualtsource } from "./defsource"
 
 const setComtrade = (setOpenComtrades: any, openComtrades: any, incrementedEventId:any) => {
@@ -30,7 +29,6 @@ const setComtrade = (setOpenComtrades: any, openComtrades: any, incrementedEvent
 export default () => {
   const [openComtrades, setOpenComtrades] = useRecoilState(eventsState);
   const incrementedEventId = openComtrades.length + 1;
-  const [selectedSources, setSelectedSources] = useRecoilState(globalSelectedSources);
 
   useAsyncEffect(async () => {
     setTimeout(setComtrade, 500, setOpenComtrades, openComtrades, incrementedEventId)

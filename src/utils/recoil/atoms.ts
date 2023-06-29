@@ -77,6 +77,17 @@ const selectedDigitalSources = atom({
   },
 });
 
+enum DisplayState {
+  ShowFirstThree,
+  ShowAll,
+  ShowToCenter,
+}
+
+const displayStateAtom = atom({
+  key: 'displayState',
+  default: DisplayState.ShowAll,
+});
+
 export {
   mosaicRepository,
   mosaicState,
@@ -86,4 +97,6 @@ export {
   selectedAnalogSources,
   selectedDigitalSources,
   getTile,
+  DisplayState,
+  displayStateAtom
 };

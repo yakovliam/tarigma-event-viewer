@@ -7,27 +7,22 @@ import useDimensions from "react-cool-dimensions";
 import {
   CanvasGroup,
   VictoryChart,
+  VictoryLabel,
   VictoryLine,
   VictoryPolarAxis,
   VictoryTheme,
 } from "victory";
-import {
-  Button,
-  Card,
-  Dialog,
-  DialogBody,
-  DialogFooter,
-} from "@blueprintjs/core";
-import SourcePickerDialogContent from "../../source/SourcePickerDialogContent";
+import { Button, Card } from "@blueprintjs/core";
 import { clickSelectedSourceint } from "../../../../types/data/sourcesTree/analog/sourceTypes";
 
+// Phasor types
 type PhaserType = "positive" | "negative" | "zero";
 
 // Array holding input phaser diagram details
 const phaserDiagram = [
-  { angle: (1 * Math.PI) / 3, magnitude: 1 },
-  { angle: (2 * Math.PI) / 3, magnitude: 1 },
-  { angle: (4 * Math.PI) / 3, magnitude: 1 },
+  { angle: (1 * Math.PI) / 3, magnitude: 0.9 },
+  { angle: (2 * Math.PI) / 3, magnitude: 0.5 },
+  { angle: (5 * Math.PI) / 3, magnitude: 0.5 },
 ];
 
 // This function calculates the rectangular coordinates for a phaser
@@ -61,6 +56,7 @@ function sumPhasers(
   let sumY = 0;
 
   let rotationFactor = 4;
+  // Setting the rotation factor depending on the phaser type
   if (phaserType === "positive") {
     rotationFactor = 4;
   } else if (phaserType === "negative") {
@@ -90,40 +86,140 @@ const PhaserPositive = sumPhasers(phaserDiagram, "positive");
 const PhaserNegative = sumPhasers(phaserDiagram, "negative");
 
 // Array that holds all phasers
-const phasrLocations = [
-  { angle: phaserDiagram[0].angle, magnitude: phaserDiagram[0].magnitude }, // IA
-  { angle: phaserDiagram[1].angle, magnitude: phaserDiagram[1].magnitude }, // IB
-  { angle: phaserDiagram[2].angle, magnitude: phaserDiagram[2].magnitude }, // IC
-  { angle: PhaserPositive.angle, magnitude: PhaserPositive.magnitude },
-  {
-    angle: rotatePhaser(PhaserPositive, (2 * Math.PI) / 3).angle,
-    magnitude: PhaserPositive.magnitude,
-  },
-  {
-    angle: rotatePhaser(PhaserPositive, (4 * Math.PI) / 3).angle,
-    magnitude: PhaserPositive.magnitude,
-  },
-  { angle: PhaserNegative.angle, magnitude: PhaserNegative.magnitude },
-  {
-    angle: rotatePhaser(PhaserNegative, (2 * Math.PI) / 3).angle,
-    magnitude: PhaserNegative.magnitude,
-  },
-  {
-    angle: rotatePhaser(PhaserNegative, (4 * Math.PI) / 3).angle,
-    magnitude: PhaserNegative.magnitude,
-  },
-  { angle: PhaserZero.angle, magnitude: PhaserZero.magnitude },
-];
 
 interface SymmetricComponentPaneProps {
   viewId: string;
 }
 
 const SymmetricComponentPane = (props: SymmetricComponentPaneProps) => {
-  const [showOnlyFirstThree, setShowOnlyFirstThree] = useState(false);
+  enum DisplayState {
+    ShowFirstThree,
+    ShowAll,
+    ShowToCenter,
+  }
+
+  const [displayState, setDisplayState] = useState(DisplayState.ShowAll);
+
+  function generatePhaserLocation(
+    position: { x: number; y: number },
+    phaser: { angle: number; magnitude: number },
+    rotationAngle = 0
+  ) {
+    const rotatedPhaser = rotatePhaser(phaser, rotationAngle);
+    const x = displayState === DisplayState.ShowAll ? 0 : position.x;
+    const y = displayState === DisplayState.ShowAll ? 0 : position.y;
+
+    return {
+      x,
+      y,
+      angle: rotatedPhaser.angle,
+      magnitude: rotatedPhaser.magnitude,
+    };
+  }
+
+  const phasrLocations = [
+    ...phaserDiagram.map((phaser) =>
+      generatePhaserLocation({ x: 0, y: 0 }, phaser)
+    ), //IA, IB, IC
+
+    generatePhaserLocation({ x: 0, y: 0 }, PhaserPositive), //PA
+    generatePhaserLocation({ x: 0, y: 0 }, PhaserPositive, (2 * Math.PI) / 3), //PB
+    generatePhaserLocation({ x: 0, y: 0 }, PhaserPositive, (4 * Math.PI) / 3), //PC
+    generatePhaserLocation(
+      {
+        x: PhaserPositive.magnitude * Math.cos(PhaserPositive.angle),
+        y: PhaserPositive.magnitude * Math.sin(PhaserPositive.angle),
+      },
+      PhaserNegative
+    ), //NA
+    generatePhaserLocation(
+      {
+        x:
+          rotatePhaser(PhaserPositive, (2 * Math.PI) / 3).magnitude *
+          Math.cos(rotatePhaser(PhaserPositive, (2 * Math.PI) / 3).angle),
+        y:
+          rotatePhaser(PhaserPositive, (2 * Math.PI) / 3).magnitude *
+          Math.sin(rotatePhaser(PhaserPositive, (2 * Math.PI) / 3).angle),
+      },
+      PhaserNegative,
+      (4 * Math.PI) / 3
+    ), //NB
+    generatePhaserLocation(
+      {
+        x:
+          rotatePhaser(PhaserPositive, (4 * Math.PI) / 3).magnitude *
+          Math.cos(rotatePhaser(PhaserPositive, (4 * Math.PI) / 3).angle),
+        y:
+          rotatePhaser(PhaserPositive, (4 * Math.PI) / 3).magnitude *
+          Math.sin(rotatePhaser(PhaserPositive, (4 * Math.PI) / 3).angle),
+      },
+      PhaserNegative,
+      (2 * Math.PI) / 3
+    ), //NC
+    {
+      x:
+        displayState === DisplayState.ShowAll
+          ? 0
+          : PhaserPositive.magnitude * Math.cos(PhaserPositive.angle) +
+            PhaserNegative.magnitude * Math.cos(PhaserNegative.angle),
+      y:
+        displayState === DisplayState.ShowAll
+          ? 0
+          : PhaserPositive.magnitude * Math.sin(PhaserPositive.angle) +
+            PhaserNegative.magnitude * Math.sin(PhaserNegative.angle),
+      angle: PhaserZero.angle,
+      magnitude: PhaserZero.magnitude,
+    }, //ZA
+    {
+      x:
+        displayState === DisplayState.ShowAll
+          ? 0
+          : rotatePhaser(PhaserPositive, (2 * Math.PI) / 3).magnitude *
+              Math.cos(rotatePhaser(PhaserPositive, (2 * Math.PI) / 3).angle) +
+            rotatePhaser(PhaserNegative, (4 * Math.PI) / 3).magnitude *
+              Math.cos(rotatePhaser(PhaserNegative, (4 * Math.PI) / 3).angle),
+      y:
+        displayState === DisplayState.ShowAll
+          ? 0
+          : rotatePhaser(PhaserPositive, (2 * Math.PI) / 3).magnitude *
+              Math.sin(rotatePhaser(PhaserPositive, (2 * Math.PI) / 3).angle) +
+            rotatePhaser(PhaserNegative, (4 * Math.PI) / 3).magnitude *
+              Math.sin(rotatePhaser(PhaserNegative, (4 * Math.PI) / 3).angle),
+      angle: PhaserZero.angle,
+      magnitude: PhaserZero.magnitude,
+    }, //ZB
+    {
+      x:
+        displayState === DisplayState.ShowAll
+          ? 0
+          : rotatePhaser(PhaserPositive, (4 * Math.PI) / 3).magnitude *
+              Math.cos(rotatePhaser(PhaserPositive, (4 * Math.PI) / 3).angle) +
+            rotatePhaser(PhaserNegative, (2 * Math.PI) / 3).magnitude *
+              Math.cos(rotatePhaser(PhaserNegative, (2 * Math.PI) / 3).angle),
+      y:
+        displayState === DisplayState.ShowAll
+          ? 0
+          : rotatePhaser(PhaserPositive, (4 * Math.PI) / 3).magnitude *
+              Math.sin(rotatePhaser(PhaserPositive, (4 * Math.PI) / 3).angle) +
+            rotatePhaser(PhaserNegative, (2 * Math.PI) / 3).magnitude *
+              Math.sin(rotatePhaser(PhaserNegative, (2 * Math.PI) / 3).angle),
+      angle: PhaserZero.angle,
+      magnitude: PhaserZero.magnitude,
+    }, //ZC
+  ];
 
   const toggleLines = () => {
-    setShowOnlyFirstThree(!showOnlyFirstThree);
+    switch (displayState) {
+      case DisplayState.ShowAll:
+        setDisplayState(DisplayState.ShowFirstThree);
+        break;
+      case DisplayState.ShowFirstThree:
+        setDisplayState(DisplayState.ShowToCenter);
+        break;
+      case DisplayState.ShowToCenter:
+      default:
+        setDisplayState(DisplayState.ShowAll);
+    }
   };
 
   //console.log(props.viewId);
@@ -134,7 +230,7 @@ const SymmetricComponentPane = (props: SymmetricComponentPaneProps) => {
   let components = [];
 
   const colors = ["red", "blue", "green"];
-  const strokeWidth = [4, 3, 2.5, 2];
+  const strokeWidth = [3, 3, 2.5, 2];
 
   const [sourcesIsOpen, setSourcesIsOpen] = useState(false);
 
@@ -145,11 +241,17 @@ const SymmetricComponentPane = (props: SymmetricComponentPaneProps) => {
     });
 
   // Adds all phasers as victoryLines to an array of components
-  for (let i = 0; i < (showOnlyFirstThree ? 3 : phasrLocations.length); i++) {
+  const linesToDisplay =
+    displayState === DisplayState.ShowFirstThree ? 3 : phasrLocations.length;
+
+  for (let i = 0; i < linesToDisplay; i++) {
     components.push(
       <VictoryLine
         key={`line-${i}`}
         style={{
+          labels: {
+            fontSize: 4,
+          },
           data: {
             stroke: colors[i % colors.length],
             strokeWidth: strokeWidth[i % 3],
@@ -157,16 +259,24 @@ const SymmetricComponentPane = (props: SymmetricComponentPaneProps) => {
         }}
         domain={[-1, 1]}
         data={[
-          { x: 0, y: 0 },
+          { x: phasrLocations[i].x, y: phasrLocations[i].y },
           {
             x:
-              phasrLocations[i].magnitude *
-              Math.cos(phasrLocations[i].angle / 1),
+              phasrLocations[i].x +
+              phasrLocations[i].magnitude * Math.cos(phasrLocations[i].angle),
             y:
-              phasrLocations[i].magnitude *
-              Math.sin(phasrLocations[i].angle / 1),
+              phasrLocations[i].y +
+              phasrLocations[i].magnitude * Math.sin(phasrLocations[i].angle),
           },
         ]}
+        labels={({ datum }) =>
+          "(" +
+          Math.floor(datum.x * 1000) / 1000 +
+          ", " +
+          Math.floor(datum.y * 1000) / 1000 +
+          ")"
+        }
+        labelComponent={<VictoryLabel renderInPortal dy={-5} dx={-5} />}
       />
     );
   }
