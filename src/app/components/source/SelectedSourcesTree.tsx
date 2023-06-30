@@ -2,7 +2,7 @@ import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
 
 import { Classes, Tree, TreeNodeInfo } from "@blueprintjs/core";
-import AnalogDataSource from "../../../types/data/data-source";
+import { AnalogDataSource } from "../../../types/data/data-source";
 import Comtrade from "../../../types/data/comtrade/comtrade";
 import { useEffect } from "react";
 
@@ -104,17 +104,18 @@ export const SelectedSourcesTree = ({
         return;
       }
 
-      const channel = event.analogChannels.find(
-        (channel) => channel.info.label === nodeData.name
+      const source = event.analogDataSources.find(
+        (source) => source.channel.info.label === nodeData.name
       );
 
-      if (channel === undefined) {
+      if (source === undefined) {
         return;
       }
 
       // remove the source from the selected sources
       const newSelectedSources = selectedSources.filter(
-        (source) => source.channel.info.label !== channel.info.label
+        (selectedSource) =>
+          selectedSource.channel.info.label !== source.channel.info.label
       );
 
       updateSelectedSources(newSelectedSources);

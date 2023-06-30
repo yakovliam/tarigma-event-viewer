@@ -2,7 +2,7 @@ import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
 
 import { Classes, Tree, TreeNodeInfo } from "@blueprintjs/core";
-import AnalogDataSource from "../../../types/data/data-source";
+import { AnalogDataSource } from "../../../types/data/data-source";
 import Comtrade from "../../../types/data/comtrade/comtrade";
 import { useEffect } from "react";
 import { convertComtradeAnalogChannelToDataSource } from "../../../utils/sources/sources-converter-util";
@@ -105,20 +105,15 @@ export const AvailableSourcesTree = ({
         return;
       }
 
-      const channel = event.analogChannels.find(
-        (channel) => channel.info.label === nodeData.name
+      const source = event.analogDataSources.find(
+        (source) => source.channel.info.label === nodeData.name
       );
 
-      if (channel === undefined) {
+      if (source === undefined) {
         return;
       }
 
-      const dataSource = convertComtradeAnalogChannelToDataSource(
-        channel,
-        event
-      );
-
-      updateSelectedSources([...selectedSources, dataSource]);
+      updateSelectedSources([...selectedSources, source]);
     },
     [events, selectedSources, updateSelectedSources]
   );
@@ -155,19 +150,14 @@ export const AvailableSourcesTree = ({
         icon: "folder-close",
         label: event.config.stationName,
         isExpanded: eventIsExpanded,
-        childNodes: event.analogChannels.map((channel) => {
-          const dataSource = convertComtradeAnalogChannelToDataSource(
-            channel,
-            event
-          );
-
+        childNodes: event.analogDataSources.map((source) => {
           return {
-            id: dataSource.channel.info.label,
+            id: source.channel.info.label,
             icon: "pulse",
-            label: dataSource.channel.info.label,
+            label: source.channel.info.label,
             nodeData: {
               eventId: event.id,
-              name: dataSource.channel.info.label,
+              name: source.channel.info.label,
             } as AnalogDataSourceNodeData,
           };
         }),

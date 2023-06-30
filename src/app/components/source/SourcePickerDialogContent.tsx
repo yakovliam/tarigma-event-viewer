@@ -3,7 +3,7 @@ import { eventsStateAtom } from "../../../utils/recoil/atoms";
 import { styled } from "styled-components";
 import { Card, Text } from "@blueprintjs/core";
 import AvailableSourcesTree from "./AvailableSourcesTree";
-import AnalogDataSource from "../../../types/data/data-source";
+import { AnalogDataSource } from "../../../types/data/data-source";
 import SelectedSourcesTree from "./SelectedSourcesTree";
 
 type SourcePickerDialogContentProps = {

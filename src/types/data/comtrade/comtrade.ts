@@ -1,7 +1,6 @@
 import Config from './config/config';
 import Header from './header/header';
-import AnalogChannel from './channel/analog/analog-channel';
-import DigitalChannel from './channel/digital/digital-channel';
+import { AnalogDataSource, DigitalDataSource } from '../data-source';
 
 type Comtrade = {
   // configuration
@@ -10,11 +9,11 @@ type Comtrade = {
   // header
   header: Header;
 
-  // array of all analog channels
-  analogChannels: AnalogChannel[];
+  // analog data sources
+  analogDataSources: AnalogDataSource[];
 
-  // array of all digital channels˝
-  digitalChannels: DigitalChannel[];
+  // digital data sources
+  digitalDataSources: DigitalDataSource[];
 
   // a generated id used to identify the comtrade in-software
   id: string;

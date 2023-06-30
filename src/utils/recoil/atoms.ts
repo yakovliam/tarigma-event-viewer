@@ -42,7 +42,7 @@ const cursorsStateAtom = atom({
   default: [
     {
       id: "cursor-1",
-      x: 5,
+      x: 200000,
       color: "green",
     },
     {

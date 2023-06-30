@@ -1,9 +1,6 @@
 import { useRecoilState, useRecoilValue } from "recoil";
 import { isDarkTheme } from "../../../../types/blueprint/theme-utils";
-import {
-  blueprintThemeRepository,
-  eventsStateAtom,
-} from "../../../../utils/recoil/atoms";
+import { blueprintThemeRepository } from "../../../../utils/recoil/atoms";
 import PaneWrapper from "../PaneWrapper";
 import {
   VictoryAxis,
@@ -28,11 +25,9 @@ import {
   DialogFooter,
 } from "@blueprintjs/core";
 import SourcePickerDialogContent from "../../source/SourcePickerDialogContent";
-import AnalogDataSource from "../../../../types/data/data-source";
-import { max, min } from "lodash";
-import TimestampedValue from "../../../../types/data/comtrade/channel/timestamped-value";
-import EmptyMosaicInfo from "../../empty/EmptyMosaicInfo";
+import { AnalogDataSource } from "../../../../types/data/data-source";
 import EmptyChartInfo from "../../empty/EmptyChartInfo";
+import useAnalogChartTitleCalculator from "../../../hooks/useAnalogChartTitleCalculator";
 
 const leftPadding = 55;
 const rightPadding = 0;
@@ -153,7 +148,8 @@ const AnalogPane = (props: AnalogPaneProps) => {
   const [selectedSources, setSelectedSources] = useState<AnalogDataSource[]>(
     []
   );
-  const [events, setEvents] = useRecoilState(eventsStateAtom);
+
+  const calculateTitle = useAnalogChartTitleCalculator();
 
   const updateSelectedSources = (sources: AnalogDataSource[]) => {
     setSelectedSources(sources);
@@ -194,6 +190,12 @@ const AnalogPane = (props: AnalogPaneProps) => {
     setMinDomainY(minDY);
     setMaxDomainY(maxDY);
 
+    console.log("---");
+    console.log("minDX", 0);
+    console.log("maxDX", maxDX);
+    console.log("minDY", minDY);
+    console.log("maxDY", maxDY);
+
     setZoomDomain({
       x: [0, maxDX],
       y: [minDY, maxDY],
@@ -220,9 +222,9 @@ const AnalogPane = (props: AnalogPaneProps) => {
       onMouseUp={() => {
         unhookCursor();
       }}
-      // onMouseDown={(e: MouseEvent) => {
-      //   e.stopPropagation();
-      // }}
+      onMouseDown={(e: MouseEvent) => {
+        e.stopPropagation();
+      }}
       onMouseMove={handleMouseMove}
     >
       {selectedSources.length > 0 &&
@@ -237,7 +239,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
             return (
               <div
                 key={cursor.id}
-                onMouseDown={(e) => {
+                onMouseDown={(e: MouseEvent) => {
                   e.stopPropagation();
                   hookCursor(cursor.id);
                 }}
@@ -267,7 +269,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
                   height: "100%",
                   width: "6px",
                   backgroundColor: cursor.color,
-                  zIndex: 0,
+                  zIndex: 1,
                 }}
               />
             );
@@ -306,7 +308,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
             tickFormat={(x) => `${x} ms`}
           />
           <VictoryAxis
-            label={"Voltage (V)"}
+            label={calculateTitle(selectedSources)}
             style={{
               axis: { stroke: "#000000" },
               grid: {
@@ -322,7 +324,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
                 groupComponent={<CanvasGroup />}
                 interpolation={"natural"}
                 style={{
-                  data: { stroke: "red" },
+                  data: { stroke: source.color },
                 }}
                 samples={source.channel.values.length}
                 x={(d) => parseFloat(d.timestamp)}
