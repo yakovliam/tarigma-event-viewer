@@ -47,7 +47,7 @@ const cursorsStateAtom = atom({
     },
     {
       id: "cursor-2",
-      x: 8,
+      x: 100000,
       color: "red",
     },
   ] as CursorState[],

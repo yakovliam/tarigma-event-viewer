@@ -22,6 +22,7 @@ export const convertComtradeAnalogChannelToDataSource = (
     name: channel.info.label,
     channel: channel,
     color: color,
+    id: channel.idx,
   };
   return dataSource;
 };
@@ -40,6 +41,7 @@ export const convertComtradeDigitalChannelToDataSource = (
     comtradeId: comtradeId,
     name: channel.info.label,
     channel: channel,
+    id: channel.idx,
   };
   return dataSource;
 };

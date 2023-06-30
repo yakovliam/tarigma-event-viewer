@@ -8,6 +8,10 @@ import DigitalChannel from "./comtrade/channel/digital/digital-channel";
  */
 export type AnalogDataSource = {
   /**
+   * Id of the analog data source (same as the idx of the channel)
+   */
+  id: number;
+  /**
    * Id of the comtrade file
    */
   comtradeId: string;
@@ -31,6 +35,10 @@ export type AnalogDataSource = {
  * E.g. Comtrade #1 :: Digital :: Channel #1 is a data source
  */
 export type DigitalDataSource = {
+  /**
+   * Id of the digital data source (same as the idx of the channel)
+   */
+  id: number;
   /**
    * Id of the comtrade file
    */

@@ -40,7 +40,7 @@ const EmptyMosaicInfo = ({
         icon="inbox-search"
         title="No events open."
         description={
-          "You've closed all of the events. Open one to view mission-critical data."
+          "You've closed all of the events. Open one to view grid-critical data."
         }
         action={
           <Button
