@@ -4,8 +4,6 @@ import { HomePage } from "./pages/HomePage";
 import {
   Alignment,
   Button,
-  Classes,
-  Intent,
   Menu,
   MenuDivider,
   MenuItem,

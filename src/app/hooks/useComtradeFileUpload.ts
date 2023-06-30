@@ -3,7 +3,7 @@ import { useRecoilValue } from "recoil";
 import { useState, useEffect } from "react";
 import Comtrade from "../../types/data/comtrade/comtrade";
 import parseFileContentsToComtrade from "../../utils/parser/comtrade-parser";
-import { eventsState as eventsStateAtom } from "../../utils/recoil/atoms";
+import { eventsStateAtom } from "../../utils/recoil/atoms";
 
 const getFileExtension = (filename: string): string =>
   filename.substring(filename.lastIndexOf(".") + 1, filename.length) ||

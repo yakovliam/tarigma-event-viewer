@@ -11,7 +11,7 @@ const blueprintThemeRepository = atom({
   default: defaultBlueprintTheme,
 });
 
-const mosaicRepository = atom({
+const mosaicRepositoryAtom = atom({
   key: "mosaicRepository",
   default: [] as MosaicTilesRepository,
 });
@@ -22,7 +22,7 @@ const getTile = selectorFamily({
   get:
     (id: string) =>
     ({ get }) => {
-      const tiles = get(mosaicRepository);
+      const tiles = get(mosaicRepositoryAtom);
       return tiles.find((tile) => tile.viewId === id);
     },
 });
@@ -32,17 +32,17 @@ const defaultMosaicState: MosaicState = {
   currentTheme: "Blueprint" as BlueprintTheme,
 };
 
-const mosaicState = atom({
+const mosaicStateAtom = atom({
   key: "mosaicState",
   default: defaultMosaicState,
 });
 
-const cursorsState = atom({
+const cursorsStateAtom = atom({
   key: "cursorsState",
   default: [
     {
       id: "cursor-1",
-      x: 5,
+      x: 200000,
       color: "green",
     },
     {
@@ -53,16 +53,16 @@ const cursorsState = atom({
   ] as CursorState[],
 });
 
-const eventsState = atom({
+const eventsStateAtom = atom({
   key: "eventsState",
   default: [] as Comtrade[],
 });
 
 export {
-  mosaicRepository,
-  mosaicState,
+  mosaicRepositoryAtom,
+  mosaicStateAtom,
   blueprintThemeRepository,
-  cursorsState,
-  eventsState,
+  cursorsStateAtom,
+  eventsStateAtom,
   getTile,
 };

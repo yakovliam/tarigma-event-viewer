@@ -3,7 +3,6 @@ import { blueprintThemeRepository } from "../../../../utils/recoil/atoms";
 import { isDarkTheme } from "../../../../types/blueprint/theme-utils";
 import PaneWrapper from "../PaneWrapper";
 import {
-  Alignment,
   Button,
   Card,
   Classes,
@@ -14,7 +13,7 @@ import {
   Text,
 } from "@blueprintjs/core";
 import { styled } from "styled-components";
-import { eventsState as eventsStateAtom } from "../../../../utils/recoil/atoms";
+import { eventsStateAtom } from "../../../../utils/recoil/atoms";
 import Comtrade from "../../../../types/data/comtrade/comtrade";
 import { useEffect, useState } from "react";
 import {
@@ -30,27 +29,12 @@ import {
 } from "./events-wrappers";
 import useComtradeFileUpload from "../../../hooks/useComtradeFileUpload";
 
-interface EventsPaneProps {
-  viewId: string;
-}
-
-const TemporaryTextWrapper = styled(Text)`
-  display: flex;
-  flex-direction: row;
-  flex-grow: 1;
-  height: 100%;
-  width: 100%;
-  gap: 10px;
-  align-items: center;
-  justify-content: center;
-`;
-
 type AccordianState = {
   eventId: string;
   isOpen: boolean;
 };
 
-const EventsPane = (props: EventsPaneProps) => {
+const EventsPane = () => {
   const [eventsState, setEventsState] = useRecoilState(eventsStateAtom);
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
   const [accordionState, setAccordionState] = useState<AccordianState[]>([]);
@@ -166,11 +150,11 @@ const EventsPane = (props: EventsPaneProps) => {
                       </Text>
                       <Text>
                         Analog Channel Count:{" "}
-                        <Tag>{event.analogChannels.length}</Tag>
+                        <Tag>{event.digitalDataSources.length}</Tag>
                       </Text>
                       <Text>
                         Digital Channel Count:{" "}
-                        <Tag>{event.digitalChannels.length}</Tag>
+                        <Tag>{event.digitalDataSources.length}</Tag>
                       </Text>
                     </EventDetailsWrapper>
                   </Card>

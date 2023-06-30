@@ -16,7 +16,7 @@ import {
   domainToPixels,
   pixelsToDomain,
 } from "../../../../utils/domain/domain-utils";
-import { cursorsState as cursorsStateAtom } from "../../../../utils/recoil/atoms";
+import { cursorsStateAtom } from "../../../../utils/recoil/atoms";
 const leftPadding = 50;
 const rightPadding = 20;
 const minDomainX = 0;
@@ -198,8 +198,8 @@ const DigitalPane = (props: DigitalPaneProps) => {
           x: 200,
           y: 0,
         }}
-        minDomain={{ y: 0 }}
-        maxDomain={{ y: 10, x: 6 }}
+        minDomain={{ y: 0, x: minDomainX }}
+        maxDomain={{ y: 10, x: maxDomainX }}
         groupComponent={<CanvasGroup />}
         containerComponent={
           <VictoryZoomContainer
@@ -218,11 +218,11 @@ const DigitalPane = (props: DigitalPaneProps) => {
             },
           }}
           data={[
-            { x: 1, y0: 3, y: 8 },
-            { x: 2, y0: 4, y: 10 },
-            { x: 3, y0: 2, y: 8 },
-            { x: 4, y0: 1, y: 6 },
-            { x: 5, y0: 2, y: 8 },
+            { x: "TRIP", y0: 3, y: 8 },
+            { x: "AAA", y0: 4, y: 10 },
+            { x: "AAB", y0: 2, y: 8 },
+            { x: "AAC", y0: 1, y: 6 },
+            { x: "AAD", y0: 2, y: 8 },
           ]}
         />
       </VictoryChart>

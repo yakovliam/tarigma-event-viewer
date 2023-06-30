@@ -1,11 +1,11 @@
-import * as papa from 'papaparse';
-import { ParseResult } from 'papaparse';
-import AnalogChannel from '../../../types/data/comtrade/channel/analog/analog-channel';
-import DigitalChannel from '../../../types/data/comtrade/channel/digital/digital-channel';
-import TimestampedValue from '../../../types/data/comtrade/channel/timestamped-value';
-import AnalogChannelInfo from '../../../types/data/comtrade/config/analog-channel-info';
-import Config from '../../../types/data/comtrade/config/config';
-import DigitalChannelInfo from '../../../types/data/comtrade/config/digital-channel-info';
+import * as papa from "papaparse";
+import { ParseResult } from "papaparse";
+import AnalogChannel from "../../../types/data/comtrade/channel/analog/analog-channel";
+import DigitalChannel from "../../../types/data/comtrade/channel/digital/digital-channel";
+import TimestampedValue from "../../../types/data/comtrade/channel/timestamped-value";
+import AnalogChannelInfo from "../../../types/data/comtrade/config/analog-channel-info";
+import Config from "../../../types/data/comtrade/config/config";
+import DigitalChannelInfo from "../../../types/data/comtrade/config/digital-channel-info";
 
 interface ParseChannelsReturnType {
   analogChannels: AnalogChannel[];
@@ -59,14 +59,23 @@ const parseChannels = (
   for (let i = 0; i < numberOfAnalogChannels; i += 1) {
     const analogValues = getColumnArray(data, i);
 
-    const output: Array<TimestampedValue> = analogValues.map((value, index) => {
-      const valuePair: TimestampedValue = {
-        timestamp:
-          timestamps[index] !== undefined ? (timestamps[index] as number) : -1,
-        value,
-      };
-      return valuePair;
-    });
+    const output: Array<TimestampedValue> = analogValues
+      .filter((value, index) => {
+        if (timestamps[index] >= 0 && value !== "" && value !== undefined) {
+          return true;
+        }
+        return false;
+      })
+      .map((value, index) => {
+        const valuePair: TimestampedValue = {
+          timestamp:
+            timestamps[index] !== undefined
+              ? (timestamps[index] as number)
+              : -1,
+          value,
+        };
+        return valuePair;
+      });
 
     // get associated info
     const info: AnalogChannelInfo | undefined = config.analogChannelInfo.find(

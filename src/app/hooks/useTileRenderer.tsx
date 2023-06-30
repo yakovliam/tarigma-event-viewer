@@ -29,6 +29,7 @@ const useTileRenderer = (
             <ExpandButton key={"expand"} />,
             // add pane right button
             <Popover2
+              key={"add-column-right"}
               placement="bottom"
               enforceFocus={false}
               content={

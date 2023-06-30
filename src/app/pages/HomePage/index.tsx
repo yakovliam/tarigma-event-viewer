@@ -11,8 +11,8 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { initializeTiles } from "../../../utils/mosaic/tiles-renderer";
 import {
   blueprintThemeRepository,
-  mosaicRepository,
-  mosaicState as mosaicStateAtom,
+  mosaicRepositoryAtom,
+  mosaicStateAtom,
 } from "../../../utils/recoil/atoms";
 import { createInstance } from "../../../utils/mosaic/tiles";
 import styled from "styled-components";
@@ -27,7 +27,7 @@ import { MosaicTileType } from "../../../types/mosaic/tiles";
 import useTileRenderer from "../../hooks/useTileRenderer";
 
 export function HomePage() {
-  const [repository, setRepository] = useRecoilState(mosaicRepository);
+  const [repository, setRepository] = useRecoilState(mosaicRepositoryAtom);
   const [mosaicState, setMosaicState] = useRecoilState(mosaicStateAtom);
   const blueprintTheme = useRecoilValue(blueprintThemeRepository);
   const [shouldInitializeTiles, setShouldInitializeTiles] =

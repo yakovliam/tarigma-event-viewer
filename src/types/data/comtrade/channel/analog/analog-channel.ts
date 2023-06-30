@@ -1,4 +1,5 @@
 import AnalogChannelInfo from "../../config/analog-channel-info";
+import { ChannelTypeAliasType } from "../channel-type";
 import TimestampedValue from "../timestamped-value";
 
 type AnalogChannel = {
