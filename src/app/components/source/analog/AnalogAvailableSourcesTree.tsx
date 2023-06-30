@@ -2,8 +2,8 @@ import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
 
 import { Classes, Tree, TreeNodeInfo } from "@blueprintjs/core";
-import { AnalogDataSource } from "../../../types/data/data-source";
-import Comtrade from "../../../types/data/comtrade/comtrade";
+import { AnalogDataSource } from "../../../../types/data/data-source";
+import Comtrade from "../../../../types/data/comtrade/comtrade";
 import { useEffect } from "react";
 
 type NodePath = number[];
@@ -69,7 +69,7 @@ function treeExampleReducer(state: TreeNodeInfo[], action: TreeAction) {
   }
 }
 
-export type SelectedSourcesTreeProps = {
+export type AnalogAvailableSourcesTreeProps = {
   selectedSources: AnalogDataSource[];
   events: Comtrade[];
   updateSelectedSources: (sources: AnalogDataSource[]) => void;
@@ -80,11 +80,11 @@ type AnalogDataSourceNodeData = {
   name: string;
 };
 
-export const SelectedSourcesTree = ({
+export const AnalogAvailableSourcesTree = ({
   selectedSources,
   events,
   updateSelectedSources,
-}: SelectedSourcesTreeProps) => {
+}: AnalogAvailableSourcesTreeProps) => {
   const [nodes, dispatch] = React.useReducer(treeExampleReducer, INITIAL_STATE);
 
   const handleNodeClick = React.useCallback(
@@ -112,13 +112,7 @@ export const SelectedSourcesTree = ({
         return;
       }
 
-      // remove the source from the selected sources
-      const newSelectedSources = selectedSources.filter(
-        (selectedSource) =>
-          selectedSource.channel.info.label !== source.channel.info.label
-      );
-
-      updateSelectedSources(newSelectedSources);
+      updateSelectedSources([...selectedSources, source]);
     },
     [events, selectedSources, updateSelectedSources]
   );
@@ -144,59 +138,29 @@ export const SelectedSourcesTree = ({
   );
 
   useEffect(() => {
-    const treeNodes: TreeNodeInfo[] = [];
-
-    // find all unique events that are present in the selected sources
-    const selectedEvents: Comtrade[] = [];
-    selectedSources.forEach((source) => {
-      const comtradeId = source.comtradeId;
-      const comtrade = events.find((event) => event.id === comtradeId);
-      if (
-        selectedEvents.find((event) => event.id === comtradeId) === undefined &&
-        comtrade !== undefined
-      ) {
-        selectedEvents.push(comtrade);
-      }
-    });
-
-    // create a tree node for each event
-    selectedEvents.forEach((event) => {
-      const eventIsExpanded = nodes.some(
+    const treeNodes: TreeNodeInfo[] = events.flatMap((event) => {
+      const eventIsExpanded: boolean = nodes.some(
         (node) => node.id === event.id && node.isExpanded
       );
-      const eventNode: TreeNodeInfo = {
+      // event should be a folder
+      return {
         id: event.id,
         hasCaret: true,
         icon: "folder-close",
         label: event.config.stationName,
         isExpanded: eventIsExpanded,
-      };
-
-      // get all sources that are part of this event that are selected
-      const applicableSourcesToEvent = selectedSources.filter(
-        (source) => source.comtradeId === event.id
-      );
-      // create a tree node for each source
-      const sourceNodes: TreeNodeInfo[] = applicableSourcesToEvent.map(
-        (source) => {
-          const sourceNode: TreeNodeInfo = {
+        childNodes: event.analogDataSources.map((source) => {
+          return {
             id: source.channel.info.label,
             icon: "pulse",
-            label: source.name,
+            label: source.channel.info.label,
             nodeData: {
               eventId: event.id,
               name: source.channel.info.label,
             } as AnalogDataSourceNodeData,
           };
-          return sourceNode;
-        }
-      );
-
-      // add the source nodes to the event node
-      eventNode.childNodes = sourceNodes;
-
-      // add the event node to the tree
-      treeNodes.push(eventNode);
+        }),
+      };
     });
 
     dispatch({ type: "RE_INITIALIZE", payload: treeNodes });
@@ -236,4 +200,4 @@ const INITIAL_STATE: TreeNodeInfo[] = [
   // },
 ];
 
-export default SelectedSourcesTree;
+export default AnalogAvailableSourcesTree;

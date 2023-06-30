@@ -24,10 +24,12 @@ import {
   DialogBody,
   DialogFooter,
 } from "@blueprintjs/core";
-import SourcePickerDialogContent from "../../source/SourcePickerDialogContent";
+import AnalogSourcePickerDialogContent from "../../source/analog/AnalogSourcePickerDialogContent";
 import { AnalogDataSource } from "../../../../types/data/data-source";
 import EmptyChartInfo from "../../empty/EmptyChartInfo";
 import useAnalogChartTitleCalculator from "../../../hooks/useAnalogChartTitleCalculator";
+import { ChartBounding } from "../../../../types/chart/chart-bounding";
+import { useAnalogChartBoundsCalculator } from "../../../hooks/useAnalogChartBoundsCalculator";
 
 const leftPadding = 55;
 const rightPadding = 0;
@@ -57,10 +59,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
   const [zoomDomain, setZoomDomain] = useState({
     x: [initMinDomainX, initMaxDomainX],
     y: [initMinDomainY, initMaxDomainY],
-  } as {
-    x: DomainTuple;
-    y: DomainTuple;
-  });
+  } as ChartBounding);
 
   /**
    * CURSOR LOGIC -------------------------------------------------------------
@@ -150,6 +149,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
   );
 
   const calculateTitle = useAnalogChartTitleCalculator();
+  const calculateChartBounds = useAnalogChartBoundsCalculator();
 
   const updateSelectedSources = (sources: AnalogDataSource[]) => {
     setSelectedSources(sources);
@@ -161,44 +161,16 @@ const AnalogPane = (props: AnalogPaneProps) => {
       return;
     }
 
-    const maxDX = Math.max(
-      ...selectedSources.flatMap((source) => {
-        return source.channel.values.map((value) => {
-          return value.timestamp;
-        });
-      })
-    );
+    const { minX, maxX, minY, maxY } = calculateChartBounds(selectedSources);
 
-    const minDY = Math.min(
-      ...selectedSources.flatMap((source) => {
-        return source.channel.values.map((value) => {
-          return value.value as number;
-        });
-      })
-    );
-
-    const maxDY = Math.max(
-      ...selectedSources.flatMap((source) => {
-        return source.channel.values.map((value) => {
-          return value.value as number;
-        });
-      })
-    );
-
-    setMinDomainX(0);
-    setMaxDomainX(maxDX);
-    setMinDomainY(minDY);
-    setMaxDomainY(maxDY);
-
-    console.log("---");
-    console.log("minDX", 0);
-    console.log("maxDX", maxDX);
-    console.log("minDY", minDY);
-    console.log("maxDY", maxDY);
+    setMinDomainX(minX);
+    setMaxDomainX(maxX);
+    setMinDomainY(minY);
+    setMaxDomainY(maxY);
 
     setZoomDomain({
-      x: [0, maxDX],
-      y: [minDY, maxDY],
+      x: [minX, maxX],
+      y: [minY, maxY],
     });
   }, [
     selectedSources,
@@ -263,7 +235,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
                     zoomDomain.x[1] as number,
                     leftPadding,
                     // the minus 40 accounts for the width of the card
-                    width - 40 - rightPadding
+                    width - rightPadding
                   )}px`,
                   top: "0px",
                   height: "100%",
@@ -366,7 +338,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
         }}
       >
         <DialogBody useOverflowScrollContainer>
-          <SourcePickerDialogContent
+          <AnalogSourcePickerDialogContent
             selectedSources={selectedSources}
             updateSelectedSources={updateSelectedSources}
           />

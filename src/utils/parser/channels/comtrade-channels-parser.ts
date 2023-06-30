@@ -61,17 +61,19 @@ const parseChannels = (
 
     const output: Array<TimestampedValue> = analogValues
       .filter((value, index) => {
-        if (timestamps[index] >= 0 && value !== "" && value !== undefined) {
+        if (
+          timestamps[index] >= 0 &&
+          value !== "" &&
+          value !== undefined &&
+          timestamps[index] !== undefined
+        ) {
           return true;
         }
         return false;
       })
       .map((value, index) => {
         const valuePair: TimestampedValue = {
-          timestamp:
-            timestamps[index] !== undefined
-              ? (timestamps[index] as number)
-              : -1,
+          timestamp: timestamps[index],
           value,
         };
         return valuePair;
@@ -103,18 +105,25 @@ const parseChannels = (
   ) {
     const digitalValues = getColumnArray(data, i);
 
-    const output: Array<TimestampedValue> = digitalValues.map(
-      (value, index) => {
+    const output: Array<TimestampedValue> = digitalValues
+      .filter((value, index) => {
+        if (
+          timestamps[index] >= 0 &&
+          value !== "" &&
+          value !== undefined &&
+          timestamps[index] !== undefined
+        ) {
+          return true;
+        }
+        return false;
+      })
+      .map((value, index) => {
         const valuePair: TimestampedValue = {
-          timestamp:
-            timestamps[index] !== undefined
-              ? (timestamps[index] as number)
-              : -1,
+          timestamp: timestamps[index],
           value,
         };
         return valuePair;
-      }
-    );
+      });
 
     // get associated info
     const info: DigitalChannelInfo | undefined = config.digitalChannelInfo.find(

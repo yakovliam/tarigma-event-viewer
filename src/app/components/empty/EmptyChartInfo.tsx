@@ -30,7 +30,7 @@ const EmptyChartInfo = () => {
         icon="inbox-search"
         title="No data sources selected."
         description={
-          "You've closed all of the data sources. Open one to view mission-critical data."
+          "You've closed all of the data sources. Open one to view grid-critical data."
         }
       />
     </EmptyStateWrapper>

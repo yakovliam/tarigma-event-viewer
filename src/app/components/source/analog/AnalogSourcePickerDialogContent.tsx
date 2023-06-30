@@ -1,12 +1,12 @@
 import { useRecoilValue } from "recoil";
-import { eventsStateAtom } from "../../../utils/recoil/atoms";
+import { eventsStateAtom } from "../../../../utils/recoil/atoms";
 import { styled } from "styled-components";
 import { Card, Text } from "@blueprintjs/core";
-import AvailableSourcesTree from "./AvailableSourcesTree";
-import { AnalogDataSource } from "../../../types/data/data-source";
-import SelectedSourcesTree from "./SelectedSourcesTree";
+import AnalogAvailableSourcesTree from "./AnalogAvailableSourcesTree";
+import { AnalogDataSource } from "../../../../types/data/data-source";
+import AnalogSelectedSourcesTree from "./AnalogSelectedSourcesTree";
 
-type SourcePickerDialogContentProps = {
+type AnalogSourcePickerDialogContentProps = {
   selectedSources: AnalogDataSource[];
   updateSelectedSources: (sources: AnalogDataSource[]) => void;
 };
@@ -37,7 +37,7 @@ const TreeWrapper = styled.div`
   padding-top: 10px;
 `;
 
-const SourcePickerDialogContent = (props: SourcePickerDialogContentProps) => {
+const AnalogSourcePickerDialogContent = (props: AnalogSourcePickerDialogContentProps) => {
   const eventsState = useRecoilValue(eventsStateAtom);
 
   return (
@@ -52,7 +52,7 @@ const SourcePickerDialogContent = (props: SourcePickerDialogContentProps) => {
         >
           <Text>Available Sources</Text>
           <TreeWrapper>
-            <AvailableSourcesTree
+            <AnalogAvailableSourcesTree
               selectedSources={props.selectedSources}
               events={eventsState}
               updateSelectedSources={props.updateSelectedSources}
@@ -64,7 +64,7 @@ const SourcePickerDialogContent = (props: SourcePickerDialogContentProps) => {
         <Card style={{ padding: "10px", height: "100%", width: "100%" }}>
           <Text>Selected Sources</Text>
           <TreeWrapper>
-            <SelectedSourcesTree
+            <AnalogSelectedSourcesTree
               selectedSources={props.selectedSources}
               events={eventsState}
               updateSelectedSources={props.updateSelectedSources}
@@ -76,4 +76,4 @@ const SourcePickerDialogContent = (props: SourcePickerDialogContentProps) => {
   );
 };
 
-export default SourcePickerDialogContent;
+export default AnalogSourcePickerDialogContent;
