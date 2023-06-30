@@ -6,6 +6,7 @@ import { useState } from "react";
 import useDimensions from "react-cool-dimensions";
 import {
   CanvasGroup,
+  VictoryAxis,
   VictoryChart,
   VictoryLabel,
   VictoryLine,
@@ -227,7 +228,7 @@ const SymmetricComponentPane = (props: SymmetricComponentPaneProps) => {
 
   const { observe } = useDimensions();
 
-  let components = [];
+  let lineComponents = [];
 
   const colors = ["red", "blue", "green"];
   const strokeWidth = [3, 3, 2.5, 2];
@@ -240,12 +241,12 @@ const SymmetricComponentPane = (props: SymmetricComponentPaneProps) => {
       click: false,
     });
 
-  // Adds all phasers as victoryLines to an array of components
+  // Adds all phasers as victoryLines to an array of lineComponents
   const linesToDisplay =
     displayState === DisplayState.ShowFirstThree ? 3 : phasrLocations.length;
 
   for (let i = 0; i < linesToDisplay; i++) {
-    components.push(
+    lineComponents.push(
       <VictoryLine
         key={`line-${i}`}
         style={{
@@ -281,20 +282,43 @@ const SymmetricComponentPane = (props: SymmetricComponentPaneProps) => {
     );
   }
 
-  return (
-    <PaneWrapper $isDark={isDarkTheme(blueprintTheme)} ref={observe}>
-      <Card
-        style={{
-          padding: "4px",
-        }}
-      >
-        <Button minimal icon="pivot" onClick={toggleLines} />
-      </Card>
+  let components = [];
+  if (displayState === DisplayState.ShowAll) {
+    for (let i = 0; i < linesToDisplay; i += 3) {
+      components.push(
+        <VictoryChart
+          theme={VictoryTheme.material}
+          groupComponent={<CanvasGroup />}
+        >
+          {lineComponents[i]}
+          {lineComponents[i + 1]}
+          {lineComponents[i + 2]}
+          {/* <VictoryAxis/> */}
+          <VictoryPolarAxis
+            style={{
+              axis: { stroke: "grey" },
+              grid: {
+                strokeWidth: 0,
+              },
+            }}
+            tickCount={1}
+            labelPlacement="vertical"
+            domain={[-1, 1]}
+            width={400}
+            height={400}
+            theme={VictoryTheme.material}
+            standalone={false}
+          />
+        </VictoryChart>
+      );
+    }
+  } else {
+    components.push(
       <VictoryChart
         theme={VictoryTheme.material}
         groupComponent={<CanvasGroup />}
       >
-        {components}
+        {lineComponents}
         <VictoryPolarAxis
           style={{
             axis: { stroke: "grey" },
@@ -311,6 +335,19 @@ const SymmetricComponentPane = (props: SymmetricComponentPaneProps) => {
           standalone={false}
         />
       </VictoryChart>
+    );
+  }
+
+  return (
+    <PaneWrapper $isDark={isDarkTheme(blueprintTheme)} ref={observe}>
+      <Card
+        style={{
+          padding: "4px",
+        }}
+      >
+        <Button minimal icon="pivot" onClick={toggleLines} />
+      </Card>
+      {components}
     </PaneWrapper>
   );
 };

@@ -2,13 +2,22 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { blueprintThemeRepository } from "../../../../utils/recoil/atoms";
 import { isDarkTheme } from "../../../../types/blueprint/theme-utils";
 import PaneWrapper from "../PaneWrapper";
-import { useEffect, useRef, useState } from "react";
+import {
+  JSXElementConstructor,
+  ReactElement,
+  ReactFragment,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import useDimensions from "react-cool-dimensions";
 import {
   CanvasGroup,
   DomainTuple,
+  VictoryAxis,
   VictoryBar,
   VictoryChart,
+  VictoryLine,
   VictoryZoomContainer,
 } from "victory";
 import { MouseEvent } from "react";
@@ -27,10 +36,31 @@ import {
 } from "@blueprintjs/core/lib/esm/components";
 import SourcePickerDialogContent from "../../source/SourcePickerDialogContent";
 import { clickSelectedSourceint } from "../../../../types/data/sourcesTree/analog/sourceTypes";
+import DigitalChannelPointRangeMap from "../../../../types/data/comtrade/channel/digital/digital-channel-point-range-map";
+import data from "../../../../utils/exampledata/data";
 const leftPadding = 50;
 const rightPadding = 20;
 const minDomainX = 0;
-const maxDomainX = 6;
+let maxDomainX = 6;
+
+const colors = [
+  "tomato",
+  "#1f77b4", // muted blue
+  "teal",
+  "orange",
+  "gold",
+  "#d62728", // brick red
+  "#9467bd", // muted purple
+  "#e377c2", // raspberry yogurt pink
+  "#7f7f7f", // middle gray
+  "#bcbd22", // curry yellow-green
+  "#17becf", // blue-teal
+  "#ff7f0e", // safety orange
+  "#2ca02c", // cooked asparagus green
+  "#8c564b", // chestnut brown
+  "navy",
+  "#ECEFF1",
+];
 
 type PointerIcon = "default" | "ew-resize";
 
@@ -56,9 +86,109 @@ const DigitalPane = (props: DigitalPaneProps) => {
 
   const digitalSources = selectedSources.comtradeSources;
 
-  if(digitalSources)
-  {
-    // TODO actually deal with the data
+  // convert digital channel point range map into data array
+  const digitalChannelDataArray: Array<[number, number]> = [];
+
+  let maxDataArray: number = 10 * 10000;
+
+  let components = [];
+
+  if (digitalSources && digitalSources.length > 0) {
+    // create labels (timestamp values)SourcePickerDialogContent
+    const labels: Array<string> = digitalSources.map((ch) => ch.info.label);
+
+    // create data to calculate min & max
+    const dataArray: Array<number> = digitalSources.flatMap((ch) =>
+      ch.values.map((tv) => tv.timestamp)
+    );
+
+    console.log("dataArray: " + dataArray);
+
+    // interpolate [ch: {timestamp, binary 0/1}, ch2: {...}] ==> [ch: [[100ms, 200ms], [300ms, 500ms]], ch2: [...]]
+    const digitalChannelPointRangeMapArray: Array<
+      DigitalChannelPointRangeMap<any, any>
+    > = [];
+    digitalSources.forEach((ch) => {
+      const pointRangeMap: Array<[any, any]> = [];
+      // loop through every timestamped value & interpolate with beginning/end var
+      let startTime: any = -1;
+      ch.values.forEach((timestampedValue) => {
+        const value: number = Number(timestampedValue.value);
+
+        if (startTime === -1) {
+          if (value === 1) {
+            startTime = timestampedValue.timestamp;
+          }
+        }
+
+        if (startTime !== -1) {
+          if (value === 0) {
+            // save to range map
+            pointRangeMap.push([startTime, timestampedValue.timestamp]);
+            startTime = -1;
+          }
+        }
+      });
+
+      digitalChannelPointRangeMapArray.push({
+        ranges: pointRangeMap,
+      } as DigitalChannelPointRangeMap<any, any>);
+    });
+
+    digitalChannelPointRangeMapArray
+      .flatMap(
+        (digitalChannelPointRangeMap) => digitalChannelPointRangeMap.ranges
+      )
+      .forEach((flattenedPart: [number, number]) => {
+        digitalChannelDataArray.push(flattenedPart);
+      });
+
+    const minDataArray = dataArray.reduce((a, b) => Math.min(a, b));
+    maxDataArray = dataArray.reduce((a, b) => Math.max(a, b));
+
+    console.log(digitalChannelDataArray);
+
+    digitalChannelDataArray.length >= 3
+      ? (maxDomainX = 0)
+      : (maxDomainX = digitalChannelDataArray.length);
+
+    for (let i = 0; i < digitalChannelDataArray.length; i++) {
+      components.push(
+        <VictoryBar
+          horizontal
+          groupComponent={<CanvasGroup />}
+          style={{
+            data: {
+              fill: colors[i % colors.length],
+              width:
+                digitalChannelDataArray.length >= 3
+                  ? 130 / digitalChannelDataArray.length
+                  : 40,
+            },
+          }}
+          data={
+            digitalChannelDataArray[i] != undefined
+              ? [
+                  {
+                    x: i + 0.5,
+                    y0: digitalChannelDataArray[i][0] / 10000,
+                    y: digitalChannelDataArray[i][1] / 10000,
+                  },
+                ]
+              : [{ x: 1, y0: 0, y: 100 }]
+          }
+        />
+      );
+    }
+
+    components.push(
+      <VictoryAxis
+        tickValues={labels.map((_, i) => i + 0.5)}
+        tickFormat={labels}
+        style={{ tickLabels: { angle: -45, textAnchor: "end" } }} // Rotate labels for better visibility if necessary
+      />
+    );
+    components.push(<VictoryAxis dependentAxis tickCount={3}/>);
   }
 
   /**
@@ -228,7 +358,13 @@ const DigitalPane = (props: DigitalPaneProps) => {
           y: 0,
         }}
         minDomain={{ y: 0 }}
-        maxDomain={{ y: 10, x: 6 }}
+        maxDomain={{
+          x:
+            digitalChannelDataArray.length <= 2
+              ? 3
+              : digitalChannelDataArray.length,
+          y: maxDataArray / 10000,
+        }}
         groupComponent={<CanvasGroup />}
         containerComponent={
           <VictoryZoomContainer
@@ -239,22 +375,9 @@ const DigitalPane = (props: DigitalPaneProps) => {
           />
         }
       >
-        <VictoryBar
-          groupComponent={<CanvasGroup />}
-          style={{
-            data: {
-              fill: "gray",
-            },
-          }}
-          data={[
-            { x: 1, y0: 3, y: 8 },
-            { x: 2, y0: 4, y: 10 },
-            { x: 3, y0: 2, y: 8 },
-            { x: 4, y0: 1, y: 6 },
-            { x: 5, y0: 2, y: 8 },
-          ]}
-        />
+        {components}
       </VictoryChart>
+
       <Card
         style={{
           padding: "4px",
@@ -316,6 +439,20 @@ const DigitalPane = (props: DigitalPaneProps) => {
           }
         />
       </Dialog>
+      <Card
+        style={{
+          padding: "4px",
+        }}
+      >
+        <Button
+          minimal
+          icon="reset"
+          onClick={() => {
+            // TODO reset the zoom
+            // setZoomDomain({ y: [minDomainX, maxDomainX], x: zoomDomain.y });
+          }}
+        />
+      </Card>
     </PaneWrapper>
   );
 };
