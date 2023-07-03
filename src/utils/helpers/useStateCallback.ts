@@ -1,5 +1,7 @@
 import * as React from "react";
 
+// Clever mod of useState that runs a callback immediately after state is updated
+// Removes the need for useffect in some cases
 export function useStateCallback<T>(
     initialState: T
   ): [T, (state: T, cb?: (state: T) => void) => void] {

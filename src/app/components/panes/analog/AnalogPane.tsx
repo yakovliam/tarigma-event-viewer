@@ -426,7 +426,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
                 });
               }}
             >
-              {JSON.stringify(clickSelectedSource)}
+              {clickSelectedSource.text}
             </Button>
           }
         />

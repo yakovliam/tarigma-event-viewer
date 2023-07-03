@@ -2,7 +2,7 @@ import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
 import { eventsState as eventsStateAtom } from "../../../utils/recoil/atoms";
 import { Classes, Icon, Tree, TreeNode, TreeNodeInfo } from "@blueprintjs/core";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import Comtrade from "../../../types/data/comtrade/comtrade";
 import AnalogChannel from "../../../types/data/comtrade/channel/analog/analog-channel";
 import {
@@ -10,6 +10,7 @@ import {
   sourcesButtonState,
 } from "../../../types/data/sourcesTree/analog/sourceTypes";
 import { useStateCallback } from "../../../utils/helpers/useStateCallback";
+import { selectedSources as globalSelectedSources } from "../../../utils/recoil/atoms";
 
 type NodePath = number[];
 
@@ -102,6 +103,8 @@ export type availableSourcesTreeProps = {
 };
 
 export const AvailableSourcesTree = (props: availableSourcesTreeProps) => {
+  const selectedSources = useRecoilValue(globalSelectedSources);
+
   function AvailableReducer(state: TreeNodeInfo[], action: TreeAction) {
     const newState = cloneDeep(state);
     switch (action.type) {
@@ -146,16 +149,8 @@ export const AvailableSourcesTree = (props: availableSourcesTreeProps) => {
     });
   }, [eventsState]);
 
-  const [clickedSources, setClickedSources] = useStateCallback<TreeNodeInfo[]>(
-    []
-  );
-
   const handleNodeClick = React.useCallback(
-    (
-      node: TreeNodeInfo,
-      nodePath: NodePath,
-      e: React.MouseEvent<HTMLElement>
-    ) => {
+    (node: TreeNodeInfo, nodePath: NodePath) => {
       const originallySelected = node.isSelected;
 
       dispatch({
@@ -165,13 +160,31 @@ export const AvailableSourcesTree = (props: availableSourcesTreeProps) => {
         },
         type: "SET_IS_SELECTED",
       });
-
-      setClickedSources([...clickedSources, node], (e) =>
-        props.selectedSourceState.setSelectedSources(e)
-      );
     },
-    [clickedSources, props.selectedSourceState]
+    []
   );
+
+  React.useEffect(() => {
+    const selectedNodes: TreeNodeInfo[] = [];
+    for (const node of nodes) {
+      if (node.childNodes)
+        selectedNodes.push(
+          node.childNodes.filter(
+            (node) => node.isSelected == true
+          ) as unknown as TreeNodeInfo
+        );
+    }
+
+    props.selectedSourceState.setSelectedSources(selectedNodes.flat());
+  }, [nodes]);
+
+  React.useEffect(() => {
+    if (!props.buttonState.selectedSources.click) {
+      dispatch({ type: "DESELECT_ALL" });
+
+      // setClickedSources([]);
+    }
+  }, [props.buttonState.selectedSources.click]);
 
   const handleNodeCollapse = React.useCallback(
     (_node: TreeNodeInfo, nodePath: NodePath) => {
