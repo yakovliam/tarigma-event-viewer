@@ -355,6 +355,7 @@ const DigitalPane = (props: DigitalPaneProps) => {
               },
               tickLabels: {
                 angle: -20,
+                fontSize: 12,
               },
             }}
             tickFormat={(x) => {
