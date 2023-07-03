@@ -12,7 +12,6 @@ import {
   Tag,
   Text,
 } from "@blueprintjs/core";
-import { styled } from "styled-components";
 import { eventsStateAtom } from "../../../../utils/recoil/atoms";
 import Comtrade from "../../../../types/data/comtrade/comtrade";
 import { useEffect, useState } from "react";

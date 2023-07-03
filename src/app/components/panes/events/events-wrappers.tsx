@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import EventsPane from './EventsPane';
 
 export const EventsNavWrapper = styled.div`
   display: flex;

@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import useDimensions from "react-cool-dimensions";
 import {
   CanvasGroup,
-  DomainTuple,
   VictoryBar,
   VictoryChart,
   VictoryZoomContainer,
