@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import useDimensions from "react-cool-dimensions";
 import {
   CanvasGroup,
+  VictoryAxis,
   VictoryBar,
   VictoryChart,
   VictoryZoomContainer,
@@ -34,7 +35,7 @@ import {
 import TimestampedValue from "../../../../types/data/comtrade/channel/timestamped-value";
 import DigitalSourcePickerDialogContent from "../../source/digital/DigitalSourcePickerDialogContent";
 
-const leftPadding = 50;
+const leftPadding = 60;
 const rightPadding = 20;
 const initMinDomainY = 0;
 const initMaxDomainY = 6;
@@ -332,6 +333,35 @@ const DigitalPane = (props: DigitalPaneProps) => {
             />
           }
         >
+          <VictoryAxis
+            offsetY={30}
+            dependentAxis
+            groupComponent={<CanvasGroup />}
+            style={{
+              axis: { stroke: "#756f6a" },
+              grid: {
+                stroke: "#c5aeae",
+              },
+              ticks: { stroke: "gray", size: 8 },
+              tickLabels: { fontSize: 15, padding: 0 },
+            }}
+            tickFormat={(x) => `${x} μs`}
+          />
+          <VictoryAxis
+            groupComponent={<CanvasGroup />}
+            style={{
+              axis: {
+                stroke: "gray",
+              },
+              tickLabels: {
+                angle: -20,
+              },
+            }}
+            tickFormat={(x) => {
+              return `${x}`;
+            }}
+          />
+
           <VictoryBar
             groupComponent={<CanvasGroup />}
             style={{
@@ -339,13 +369,6 @@ const DigitalPane = (props: DigitalPaneProps) => {
                 fill: "gray",
               },
             }}
-            // data={[
-            //   { x: "TRIP", y0: 3, y: 80000 },
-            //   { x: "AAA", y0: 4, y: 100000 },
-            //   { x: "AAB", y0: 2, y: 80000 },
-            //   { x: "AAC", y0: 1, y: 60000 },
-            //   { x: "AAD", y0: 2, y: 80000 },
-            // ]}
             data={selectedElements.flatMap((element) => {
               return element.elements.map((bar) => {
                 return {

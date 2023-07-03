@@ -277,12 +277,11 @@ const AnalogPane = (props: AnalogPaneProps) => {
               ticks: { stroke: "gray", size: 8 },
               tickLabels: { fontSize: 15, padding: 0 },
             }}
-            tickFormat={(x) => `${x} ms`}
+            tickFormat={(x) => `${x} μs`}
           />
           <VictoryAxis
             label={calculateTitle(selectedSources)}
             style={{
-              axis: { stroke: "#000000" },
               grid: {
                 stroke: "#c8c8c8",
               },
