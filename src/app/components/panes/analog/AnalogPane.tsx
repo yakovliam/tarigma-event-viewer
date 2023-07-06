@@ -9,6 +9,9 @@ import {
   DomainTuple,
   CanvasGroup,
   VictoryLine,
+  VictoryScatter,
+  createContainer,
+  VictoryTooltip,
 } from "victory";
 import { MouseEvent, useEffect, useRef, useState } from "react";
 import useDimensions from "react-cool-dimensions";
@@ -30,6 +33,7 @@ import EmptyChartInfo from "../../empty/EmptyChartInfo";
 import useAnalogChartTitleCalculator from "../../../hooks/useAnalogChartTitleCalculator";
 import { ChartBounding } from "../../../../types/chart/chart-bounding";
 import { useAnalogChartBoundsCalculator } from "../../../hooks/useAnalogChartBoundsCalculator";
+import { round } from "lodash";
 
 const leftPadding = 55;
 const rightPadding = 0;
@@ -60,6 +64,21 @@ const AnalogPane = (props: AnalogPaneProps) => {
     x: [initMinDomainX, initMaxDomainX],
     y: [initMinDomainY, initMaxDomainY],
   } as ChartBounding);
+
+  const calculateZoomRange = (zoomDomain: { x: any; y?: DomainTuple }) => {
+    if (
+      typeof zoomDomain.x[0] === "number" &&
+      typeof zoomDomain.x[1] === "number"
+    ) {
+      return zoomDomain.x[1] - zoomDomain.x[0];
+    } else {
+      // If not numbers, treat as dates
+      return (
+        (zoomDomain.x[1] as Date).getTime() -
+        (zoomDomain.x[0] as Date).getTime()
+      );
+    }
+  };
 
   /**
    * CURSOR LOGIC -------------------------------------------------------------
@@ -181,6 +200,8 @@ const AnalogPane = (props: AnalogPaneProps) => {
     setMaxDomainY,
   ]);
 
+  const VictoryZoomVoronoiContainer = createContainer("zoom", "voronoi");
+
   return (
     <PaneWrapper
       $isDark={isDarkTheme(blueprintTheme)}
@@ -259,7 +280,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
           minDomain={{ x: minDomainX, y: minDomainY }}
           maxDomain={{ x: maxDomainX, y: maxDomainY }}
           containerComponent={
-            <VictoryZoomContainer
+            <VictoryZoomVoronoiContainer
               zoomDomain={zoomDomain}
               zoomDimension="x"
               onZoomDomainChange={handleZoomDomainChange}
@@ -289,20 +310,76 @@ const AnalogPane = (props: AnalogPaneProps) => {
             dependentAxis
           />
           {selectedSources.map((source) => {
-            return (
-              <VictoryLine
-                key={source.name}
-                groupComponent={<CanvasGroup />}
-                interpolation={"natural"}
-                style={{
-                  data: { stroke: source.color },
-                }}
-                samples={source.channel.values.length}
-                x={(d) => parseFloat(d.timestamp)}
-                y={(d) => parseFloat(d.value)}
-                data={source.channel.values}
-              />
-            );
+            const zoomRange = calculateZoomRange(zoomDomain);
+            // console.log(zoomRange);
+            if (zoomRange <= 32000) {
+              return (
+                <VictoryScatter
+                  key={source.name}
+                  style={{ data: { fill: source.color } }}
+                  x={(d) => parseFloat(d.timestamp)}
+                  y={(d) => parseFloat(d.value)}
+                  data={sampleBetween(
+                    source.channel.values,
+                    zoomDomain.x[0] as number,
+                    zoomDomain.x[1] as number
+                  )}
+                  labels={({ datum }) =>
+                    `Name: ${source.name}\nTimestamp: ${datum.timestamp}\nValue: ${datum.value}`
+                  }
+                  labelComponent={
+                    <VictoryTooltip
+                      flyoutStyle={{ fill: "black", stroke: "rgba(0,0,0,0.5)" }}
+                      style={{ fill: "white", fontSize: 12 }}
+                      cornerRadius={5}
+                      pointerLength={10}
+                      flyoutPadding={{
+                        top: 10,
+                        right: 15,
+                        bottom: 10,
+                        left: 15,
+                      }}
+                    />
+                  }
+                />
+              );
+            } else {
+              return (
+                <VictoryLine
+                  key={source.name}
+                  groupComponent={<CanvasGroup />}
+                  interpolation={"natural"}
+                  style={{
+                    data: { stroke: source.color },
+                  }}
+                  samples={source.channel.values.length}
+                  x={(d) => parseFloat(d.timestamp)}
+                  y={(d) => parseFloat(d.value)}
+                  data={sampleBetween(
+                    source.channel.values,
+                    zoomDomain.x[0] as number,
+                    zoomDomain.x[1] as number
+                  )} // TODO apply the Ramer-Douglas-Peucker algorithm
+                  labels={({ datum }) =>
+                    `Name: ${source.name}\nTimestamp: ${datum.timestamp}\nValue: ${datum.value}`
+                  }
+                  labelComponent={
+                    <VictoryTooltip
+                      flyoutStyle={{ fill: "black", stroke: "rgba(0,0,0,0.5)" }}
+                      style={{ fill: "white", fontSize: 12 }}
+                      cornerRadius={5}
+                      pointerLength={10}
+                      flyoutPadding={{
+                        top: 10,
+                        right: 15,
+                        bottom: 10,
+                        left: 15,
+                      }}
+                    />
+                  }
+                />
+              );
+            }
           })}
         </VictoryChart>
       ) : (
@@ -358,5 +435,55 @@ const AnalogPane = (props: AnalogPaneProps) => {
     </PaneWrapper>
   );
 };
+
+interface DataPoint {
+  timestamp: number;
+  value: number;
+}
+
+function getDistance(point: DataPoint, line: DataPoint[]): number {
+  const [start, end] = line;
+  const numerator = Math.abs(
+    (end.value - start.value) * point.timestamp -
+      (end.timestamp - start.timestamp) * point.value +
+      end.timestamp * start.value -
+      end.value * start.timestamp
+  );
+  const denominator = Math.sqrt(
+    Math.pow(end.value - start.value, 2) +
+      Math.pow(end.timestamp - start.timestamp, 2)
+  );
+  return numerator / denominator;
+}
+
+function downsample(points: DataPoint[], epsilon: number): DataPoint[] {
+  const start = points[0];
+  const end = points[points.length - 1];
+  let index = -1;
+  let maxDistance = 0;
+
+  for (let i = 1; i < points.length - 1; i++) {
+    const distance = getDistance(points[i], [start, end]);
+    if (distance > maxDistance) {
+      index = i;
+      maxDistance = distance;
+    }
+  }
+
+  if (maxDistance > epsilon) {
+    const results1 = downsample(points.slice(0, index + 1), epsilon);
+    const results2 = downsample(points.slice(index), epsilon);
+    return results1.slice(0, results1.length - 1).concat(results2);
+  } else {
+    return [start, end];
+  }
+}
+
+function sampleBetween(array: any[], start: number, end: number) {
+  //only samples data between endpoints
+  return array.filter(
+    (point) => point.timestamp >= start && point.timestamp <= end
+  );
+}
 
 export default AnalogPane;
