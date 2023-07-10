@@ -9,6 +9,7 @@ import {
   VictoryAxis,
   VictoryBar,
   VictoryChart,
+  VictoryTooltip,
   VictoryZoomContainer,
 } from "victory";
 import { MouseEvent } from "react";
@@ -97,6 +98,11 @@ const DigitalPane = (props: DigitalPaneProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    handleZoomDomainChange(zoomDomain);
+    console.log("zoomDomain changed");
+  }, [zoomDomain, width, height]);
+
   const hookCursor = (cursorId: string) => {
     setHookedCursor(cursorId);
   };
@@ -106,11 +112,10 @@ const DigitalPane = (props: DigitalPaneProps) => {
   };
 
   const calculateBarWidth = (domain: ChartBounding) => {
-    // This function should implement the desired behavior for bar width
-    // based on the domain. Here is a simple example:
-    const domainRange = (domain.y[1] as number) - (domain.y[0] as number); // assuming y is the zoomable dimension
-    const baseWidth = 80; // base bar width when there is no zoom
-    const zoomFactor = domainRange / (maxDomainY - minDomainY); // how much the view is zoomed in
+    // NEED TO CALL WHEN PANE IS RESIZED
+    const domainRange = (domain.x[1] as number) - (domain.x[0] as number); // assuming y is the zoomable dimension
+    const baseWidth = 0.0012; // base bar width when there is no zoom
+    const zoomFactor = domainRange / (maxDomainY - minDomainY) / (height / 900); // how much the view is zoomed in
     return baseWidth / zoomFactor; // adjust bar width based on zoom level
   };
 
@@ -118,7 +123,6 @@ const DigitalPane = (props: DigitalPaneProps) => {
     // Adjust bar width based on new zoom domain
     const newBarWidth = calculateBarWidth(domain);
     setBarWidth(newBarWidth);
-    console.log(barWidth);
 
     if (hookedCursor) {
       return;
@@ -168,7 +172,9 @@ const DigitalPane = (props: DigitalPaneProps) => {
   >([]);
   const calculateChartBounds = useDigitalChartBoundsCalculator();
 
-  const [barWidth, setBarWidth] = useState(80);
+  const [barWidth, setBarWidth] = useState(0.0012);
+
+  const [hoverBar, setHoverBar] = useState(null);
 
   const updateSelectedSources = (sources: DigitalDataSource[]) => {
     setSelectedSources(sources);
@@ -387,6 +393,7 @@ const DigitalPane = (props: DigitalPaneProps) => {
               },
             }}
             barWidth={barWidth}
+            labelComponent={<VictoryTooltip />}
             data={selectedElements.flatMap((element) => {
               return element.elements.map((bar) => {
                 return {

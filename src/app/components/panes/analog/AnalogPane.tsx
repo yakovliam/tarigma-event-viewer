@@ -147,6 +147,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
   const [selectedSources, setSelectedSources] = useState<AnalogDataSource[]>(
     []
   );
+  
 
   const calculateTitle = useAnalogChartTitleCalculator();
   const calculateChartBounds = useAnalogChartBoundsCalculator();
