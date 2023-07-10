@@ -60,6 +60,10 @@ const AnalogPane = (props: AnalogPaneProps) => {
   const [minDomainY, setMinDomainY] = useState(initMinDomainY);
   const [maxDomainY, setMaxDomainY] = useState(initMaxDomainY);
 
+  const [tooltipOrientation, setTooltipOrientation] = useState<
+    "top" | "bottom" | "left" | "right"
+  >("top");
+
   const [zoomDomain, setZoomDomain] = useState({
     x: [initMinDomainX, initMaxDomainX],
     y: [initMinDomainY, initMaxDomainY],
@@ -128,6 +132,12 @@ const AnalogPane = (props: AnalogPaneProps) => {
   };
 
   const handleMouseMove = (e: MouseEvent) => {
+    const chartHeight = 267; // height of the chart
+
+    const mouseY = e.clientY; // Y-coordinate of the mouse. Range with padding: 100 - 267
+    setTooltipOrientation(mouseY - 185 < 0 ? "bottom" : "top");
+
+
     if (!hookedCursor) {
       return;
     }
@@ -280,10 +290,11 @@ const AnalogPane = (props: AnalogPaneProps) => {
           minDomain={{ x: minDomainX, y: minDomainY }}
           maxDomain={{ x: maxDomainX, y: maxDomainY }}
           containerComponent={
-            <VictoryZoomVoronoiContainer
+            <VictoryZoomContainer
               zoomDomain={zoomDomain}
               zoomDimension="x"
               onZoomDomainChange={handleZoomDomainChange}
+              responsive={true}
               // downsample
             />
           }
@@ -319,6 +330,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
                   style={{ data: { fill: source.color } }}
                   x={(d) => parseFloat(d.timestamp)}
                   y={(d) => parseFloat(d.value)}
+                  size={4}
                   data={sampleBetween(
                     source.channel.values,
                     zoomDomain.x[0] as number,
@@ -339,6 +351,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
                         bottom: 10,
                         left: 15,
                       }}
+                      orientation={tooltipOrientation}
                     />
                   }
                 />
@@ -355,28 +368,32 @@ const AnalogPane = (props: AnalogPaneProps) => {
                   samples={source.channel.values.length}
                   x={(d) => parseFloat(d.timestamp)}
                   y={(d) => parseFloat(d.value)}
-                  data={sampleBetween(
-                    source.channel.values,
-                    zoomDomain.x[0] as number,
-                    zoomDomain.x[1] as number
+                  data={downsample(
+                    sampleBetween(
+                      source.channel.values,
+                      zoomDomain.x[0] as number,
+                      zoomDomain.x[1] as number
+                    ),
+                    1 - zoomRange / 500000
                   )} // TODO apply the Ramer-Douglas-Peucker algorithm
-                  labels={({ datum }) =>
-                    `Name: ${source.name}\nTimestamp: ${datum.timestamp}\nValue: ${datum.value}`
-                  }
-                  labelComponent={
-                    <VictoryTooltip
-                      flyoutStyle={{ fill: "black", stroke: "rgba(0,0,0,0.5)" }}
-                      style={{ fill: "white", fontSize: 12 }}
-                      cornerRadius={5}
-                      pointerLength={10}
-                      flyoutPadding={{
-                        top: 10,
-                        right: 15,
-                        bottom: 10,
-                        left: 15,
-                      }}
-                    />
-                  }
+                  // labels={({ datum }) =>
+                  //   `Name: ${source.name}\nTimestamp: ${datum.timestamp}\nValue: ${datum.value}`
+                  // }
+                  // labelComponent={
+                  //   <VictoryTooltip
+                  //     flyoutStyle={{ fill: "black", stroke: "rgba(0,0,0,0.5)" }}
+                  //     style={{ fill: "white", fontSize: 12 }}
+                  //     cornerRadius={5}
+                  //     pointerLength={10}
+                  //     flyoutPadding={{
+                  //       top: 10,
+                  //       right: 15,
+                  //       bottom: 10,
+                  //       left: 15,
+                  //     }}
+                  //     orientation={tooltipOrientation}
+                  //   />
+                  // }
                 />
               );
             }
