@@ -105,7 +105,21 @@ const DigitalPane = (props: DigitalPaneProps) => {
     setHookedCursor(null);
   };
 
+  const calculateBarWidth = (domain: ChartBounding) => {
+    // This function should implement the desired behavior for bar width
+    // based on the domain. Here is a simple example:
+    const domainRange = (domain.y[1] as number) - (domain.y[0] as number); // assuming y is the zoomable dimension
+    const baseWidth = 80; // base bar width when there is no zoom
+    const zoomFactor = domainRange / (maxDomainY - minDomainY); // how much the view is zoomed in
+    return baseWidth / zoomFactor; // adjust bar width based on zoom level
+  };
+
   const handleZoomDomainChange = (domain: ChartBounding) => {
+    // Adjust bar width based on new zoom domain
+    const newBarWidth = calculateBarWidth(domain);
+    setBarWidth(newBarWidth);
+    console.log(barWidth);
+
     if (hookedCursor) {
       return;
     }
@@ -153,6 +167,8 @@ const DigitalPane = (props: DigitalPaneProps) => {
     DigitalSourceElement[]
   >([]);
   const calculateChartBounds = useDigitalChartBoundsCalculator();
+
+  const [barWidth, setBarWidth] = useState(80);
 
   const updateSelectedSources = (sources: DigitalDataSource[]) => {
     setSelectedSources(sources);
@@ -370,6 +386,7 @@ const DigitalPane = (props: DigitalPaneProps) => {
                 fill: "gray",
               },
             }}
+            barWidth={barWidth}
             data={selectedElements.flatMap((element) => {
               return element.elements.map((bar) => {
                 return {
