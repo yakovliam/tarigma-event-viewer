@@ -34,6 +34,7 @@ import {
 } from "../../../../types/chart/digital-source-element";
 import TimestampedValue from "../../../../types/data/comtrade/channel/timestamped-value";
 import DigitalSourcePickerDialogContent from "../../source/digital/DigitalSourcePickerDialogContent";
+import { VictoryTheme } from "../../../../utils/color/victory-theme";
 
 const leftPadding = 60;
 const rightPadding = 20;
@@ -239,6 +240,8 @@ const DigitalPane = (props: DigitalPaneProps) => {
     setMaxDomainY,
   ]);
 
+  const theme = VictoryTheme(isDarkTheme(blueprintTheme))
+
   return (
     <PaneWrapper
       $isDark={isDarkTheme(blueprintTheme)}
@@ -302,6 +305,7 @@ const DigitalPane = (props: DigitalPaneProps) => {
           })}
       {selectedSources.length > 0 ? (
         <VictoryChart
+          theme={theme}
           width={width}
           height={height}
           padding={{

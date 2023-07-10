@@ -30,6 +30,7 @@ import EmptyChartInfo from "../../empty/EmptyChartInfo";
 import useAnalogChartTitleCalculator from "../../../hooks/useAnalogChartTitleCalculator";
 import { ChartBounding } from "../../../../types/chart/chart-bounding";
 import { useAnalogChartBoundsCalculator } from "../../../hooks/useAnalogChartBoundsCalculator";
+import { VictoryTheme } from "../../../../utils/color/victory-theme";
 
 const leftPadding = 55;
 const rightPadding = 0;
@@ -181,6 +182,8 @@ const AnalogPane = (props: AnalogPaneProps) => {
     setMaxDomainY,
   ]);
 
+  const theme = VictoryTheme(isDarkTheme(blueprintTheme))
+
   return (
     <PaneWrapper
       $isDark={isDarkTheme(blueprintTheme)}
@@ -248,6 +251,7 @@ const AnalogPane = (props: AnalogPaneProps) => {
           })}
       {selectedSources.length > 0 ? (
         <VictoryChart
+          theme={theme}
           width={width}
           height={height}
           padding={{
@@ -269,23 +273,10 @@ const AnalogPane = (props: AnalogPaneProps) => {
         >
           <VictoryAxis
             offsetY={30}
-            style={{
-              axis: { stroke: "#756f6a" },
-              grid: {
-                stroke: "#c5aeae",
-              },
-              ticks: { stroke: "gray", size: 8 },
-              tickLabels: { fontSize: 15, padding: 0 },
-            }}
             tickFormat={(x) => `${x} μs`}
           />
           <VictoryAxis
             label={calculateTitle(selectedSources)}
-            style={{
-              grid: {
-                stroke: "#c8c8c8",
-              },
-            }}
             dependentAxis
           />
           {selectedSources.map((source) => {
