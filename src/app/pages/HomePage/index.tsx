@@ -182,6 +182,12 @@ export function HomePage() {
               )?.title;
 
               if (!element || !title) {
+                console.log("repo: " + repository);
+                console.log("element: " + element);
+                console.log("title: " + title);
+                console.log("Rendering tile with ID:", id);
+                const foundTile = repository.find((tile) => tile.viewId === id);
+                console.log("Found tile:", foundTile);
                 return <div>Tile not found</div>;
               }
 

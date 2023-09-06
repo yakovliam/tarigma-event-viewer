@@ -19,6 +19,7 @@ export const initializeTiles = (): MosaicTilesRepository => {
   tiles.push(createInstance("analog"));
   tiles.push(createInstance("analog"));
   tiles.push(createInstance("digital"));
+  tiles.push(createInstance("symmetric-components"));
 
   return tiles;
 };

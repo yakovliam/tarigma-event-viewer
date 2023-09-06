@@ -6,7 +6,7 @@ import { MosaicTile } from "../../types/mosaic/tile";
 import { MosaicTileType } from "../../types/mosaic/tiles";
 import { v4 as uuidv4 } from "uuid";
 import EmptyUnknownTileInfo from "../../app/components/empty/EmptyUnknownTileInfo";
-
+import SymmetricComponentPane from "../../app/components/panes/symmetric-components/SymmetricComponentPane";
 const UnknownPaneWrapper = styled.div`
   display: flex;
   flex-direction: row;
@@ -38,6 +38,10 @@ export const createInstance = (
       tileContent = <DigitalPane viewId={id} />;
       title = "Digital Pane";
       break;
+    case "symmetric-components":
+      tileContent = <SymmetricComponentPane viewId={id} />;
+      title = "Symmetric Components";
+      break;
     default:
       tileContent = <EmptyUnknownTileInfo />;
       title = "Unknown Pane (type: '" + type + "')";
@@ -48,7 +52,7 @@ export const createInstance = (
   const tile: MosaicTile = {
     type: type,
     viewId: id,
-    title: title,
+    title: title, //    title: type.charAt(0).toUpperCase() + type.slice(1) + ": " + id.slice(0, 3),
     element: tileContent,
     dataSources: [],
   };
