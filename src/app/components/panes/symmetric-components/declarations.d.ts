@@ -3,11 +3,11 @@ declare module 'fft-js' {
     function ifft(phasors: any[]): number[];
     function dft(signal: number[]): any[];
     function idft(phasors: any[]): number[];
-    // ... and so on for other functions you plan to use.
+    // add other functions if needed
 
     const util: {
         fftFreq: (phasors: any[], rate: number) => number[],
         fftMag: (phasors: any[]) => number[],
-        // ... and so on for other utility functions.
+        // add other utility functions if needed
     };
 }
