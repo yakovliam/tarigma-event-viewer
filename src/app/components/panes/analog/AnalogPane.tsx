@@ -44,7 +44,7 @@ interface AnalogPaneProps {
   viewId: string;
 }
 
-const AnalogPane = (props: AnalogPaneProps) => {
+const AnalogPane = (_props: AnalogPaneProps) => {
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
 
   const { observe, unobserve, width, height } = useDimensions();

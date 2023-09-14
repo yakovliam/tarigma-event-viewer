@@ -21,38 +21,11 @@ import {
   VictoryPolarAxis,
   VictoryTheme,
 } from "victory";
-import {
-  Button,
-  Card,
-  Dialog,
-  DialogBody,
-  DialogFooter,
-} from "@blueprintjs/core";
-import * as fftJs from "fft-js";
-import { computeVectors } from "./FFTComputation";
-import AnalogSourcePickerDialogContent from "../../source/analog/AnalogSourcePickerDialogContent";
+import { Button, Card } from "@blueprintjs/core";
 
 type PhaserType = "positive" | "negative" | "zero";
 
 type PhasorArray = { angle: number; magnitude: number }[];
-
-const getPhasorsAtCursor = (
-  cursorPosition: number,
-  analogDataSources: any[],
-  digitalDataSources: any[]
-): PhasorArray[] => {
-  const phasors: PhasorArray[] = [];
-
-  const computedVectors = computeVectors(
-    cursorPosition,
-    analogDataSources,
-    digitalDataSources
-  );
-
-  // console.log("computedVectors", computedVectors);
-
-  return phasors;
-};
 
 // const computePhasors = (cursorPosition) => {
 //     // Find the relevant COMTRADE data using the cursor position
@@ -118,7 +91,7 @@ function sumPhasers(
 }
 
 const SymmetricComponentPane = () => {
-  const [phasorDiagram, setphasorDiagram] = useState([
+  const [phasorDiagram] = useState([
     { angle: (1 * Math.PI) / 3, magnitude: 1 },
     { angle: (2 * Math.PI) / 3, magnitude: 1 },
     { angle: (4 * Math.PI) / 3, magnitude: 1 },
@@ -165,7 +138,6 @@ const SymmetricComponentPane = () => {
   const digitalDataSources = eventsState[0].digitalDataSources;
   const analogDataSources = eventsState[0].analogDataSources;
 
-  const config = eventsState[0].config;
   const header = eventsState[0].header;
 
   // console.log("config", config);
@@ -179,11 +151,6 @@ const SymmetricComponentPane = () => {
 
   useEffect(() => {
     // Compute phasors each time cursorPosition changes
-    const newPhasorData = getPhasorsAtCursor(
-      cursorPosition,
-      analogDataSources,
-      digitalDataSources
-    );
   }, [cursorPosition, analogDataSources, digitalDataSources]);
 
   const [displayMode, setDisplayMode] = useState<
@@ -293,17 +260,13 @@ const SymmetricComponentPane = () => {
       break;
   }
 
-  let buttonText = "";
   switch (displayMode) {
     case "firstThree":
-      buttonText = "Show All Lines Together";
       break;
     case "allTogether":
-      buttonText = "Show Lines in Groups";
       break;
     case "groups":
     default:
-      buttonText = "Show First Three Lines";
       break;
   }
 
