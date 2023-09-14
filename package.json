@@ -1,9 +1,12 @@
 {
   "name": "tarigma-event-viewer-vite",
   "private": true,
+  "homepage": "https://github.com/tarigma/event-viewer-demo.git",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predeploy": "yarn build",
+    "deploy": "gh-pages -d dist",
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",

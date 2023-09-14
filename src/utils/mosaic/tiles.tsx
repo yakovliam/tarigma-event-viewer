@@ -1,4 +1,3 @@
-import { styled } from "styled-components";
 import AnalogPane from "../../app/components/panes/analog/AnalogPane";
 import DigitalPane from "../../app/components/panes/digital/DigitalPane";
 import EventsPane from "../../app/components/panes/events/EventsPane";
@@ -7,13 +6,6 @@ import { MosaicTileType } from "../../types/mosaic/tiles";
 import { v4 as uuidv4 } from "uuid";
 import EmptyUnknownTileInfo from "../../app/components/empty/EmptyUnknownTileInfo";
 import SymmetricComponentPane from "../../app/components/panes/symmetric-components/SymmetricComponentPane";
-const UnknownPaneWrapper = styled.div`
-  display: flex;
-  flex-direction: row;
-  flex-grow: 1;
-  height: 100%;
-  width: 100%;
-`;
 
 export const createInstance = (
   type: MosaicTileType,
@@ -27,7 +19,7 @@ export const createInstance = (
 
   switch (type) {
     case "events":
-      tileContent = <EventsPane viewId={id} />;
+      tileContent = <EventsPane />;
       title = "Events Pane";
       break;
     case "analog":
@@ -39,7 +31,7 @@ export const createInstance = (
       title = "Digital Pane";
       break;
     case "symmetric-components":
-      tileContent = <SymmetricComponentPane viewId={id} />;
+      tileContent = <SymmetricComponentPane />;
       title = "Symmetric Components";
       break;
     default:

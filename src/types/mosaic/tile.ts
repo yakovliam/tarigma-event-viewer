@@ -1,4 +1,4 @@
-import AnalogDataSource from "../data/data-source";
+import { AnalogDataSource } from "../data/data-source";
 import { MosaicTileType } from "./tiles";
 
 export type MosaicTile = {

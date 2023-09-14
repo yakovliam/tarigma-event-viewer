@@ -1,10 +1,10 @@
 import { MosaicNode } from "react-mosaic-component";
 import MosaicState from "../../types/mosaic/state";
 import { useRecoilValue } from "recoil";
-import {mosaicRepository} from "../recoil/atoms";
+import { mosaicRepositoryAtom } from "../recoil/atoms";
 
 const MosaicStatePopulator = (): MosaicState => {
-  const repository = useRecoilValue(mosaicRepository);
+  const repository = useRecoilValue(mosaicRepositoryAtom);
 
   const node: MosaicNode<string> = {
     direction: "row",
