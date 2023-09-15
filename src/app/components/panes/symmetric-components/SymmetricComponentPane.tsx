@@ -17,6 +17,7 @@ import useDimensions from "react-cool-dimensions";
 import {
   CanvasGroup,
   VictoryChart,
+  VictoryLabel,
   VictoryLine,
   VictoryPolarAxis,
   VictoryTheme,
@@ -197,6 +198,12 @@ const SymmetricComponentPane = () => {
     { angle: PhaserZero.angle, magnitude: PhaserZero.magnitude },
   ];
 
+  const plottingMaxMagnitude = 1;
+  const actualMaxMagnitude = Math.max(
+    ...phasrLocations.map((phasor) => Math.abs(phasor.magnitude))
+  );
+  const scalingFactor = plottingMaxMagnitude / actualMaxMagnitude;
+
   const [cursorsState] = useRecoilState(cursorsStateAtom);
 
   const cursorPosition = cursorsState[1].x as number; // value in micro seconds
@@ -249,7 +256,7 @@ const SymmetricComponentPane = () => {
   const colors = ["red", "blue", "green"];
   const strokeWidth = [4, 3, 2.5, 2];
 
-  const renderVictoryChart = (phasorIndices: number[]) => {
+  const renderVictoryChart = (phasorIndices: number[], title: string) => {
     const components = phasorIndices.map((i) => (
       <VictoryLine
         key={`line-${i}`}
@@ -263,8 +270,14 @@ const SymmetricComponentPane = () => {
         data={[
           { x: 0, y: 0 },
           {
-            x: phasrLocations[i].magnitude * Math.cos(phasrLocations[i].angle),
-            y: phasrLocations[i].magnitude * Math.sin(phasrLocations[i].angle),
+            x:
+              phasrLocations[i].magnitude *
+              Math.cos(phasrLocations[i].angle) *
+              scalingFactor,
+            y:
+              phasrLocations[i].magnitude *
+              Math.sin(phasrLocations[i].angle) *
+              scalingFactor,
           },
         ]}
       />
@@ -276,6 +289,13 @@ const SymmetricComponentPane = () => {
           theme={VictoryTheme.material}
           groupComponent={<CanvasGroup />}
         >
+          <VictoryLabel
+            x={175}
+            y={20}
+            textAnchor="middle"
+            style={{ fontSize: 20, fill: "#333" }}
+            text={title}
+          />
           {components}
           <VictoryPolarAxis
             style={{
@@ -306,25 +326,28 @@ const SymmetricComponentPane = () => {
     | undefined;
   switch (displayMode) {
     case "firstThree":
-      charts = [renderVictoryChart([0, 1, 2])];
+      charts = [
+        renderVictoryChart([0, 1, 2], "Phasor diagram for IA, IB, and IC"),
+      ];
       break;
     case "allTogether":
       charts = [
         renderVictoryChart(
-          Array.from({ length: phasrLocations.length }, (_, i) => i)
+          Array.from({ length: phasrLocations.length }, (_, i) => i),
+          "Phasor diagram for IA, IB, and IC" // Adjust this title as required
         ),
       ];
       break;
     case "groups":
       charts = [
-        <div key="upper-group">
-          {renderVictoryChart([0, 1, 2])}
-          {renderVictoryChart([3, 4, 5])}
+        <div key="left">{renderVictoryChart([0, 1, 2], "Input")}</div>,
+        <div key="center-left">
+          {renderVictoryChart([3, 4, 5], "Positive")}
         </div>,
-        <div key="lower-group">
-          {renderVictoryChart([6, 7, 8])}
-          {renderVictoryChart([9])}
+        <div key="center-right">
+          {renderVictoryChart([6, 7, 8], "Negative")}
         </div>,
+        <div key="right">{renderVictoryChart([9], "Zero")}</div>,
       ];
       break;
     default:
