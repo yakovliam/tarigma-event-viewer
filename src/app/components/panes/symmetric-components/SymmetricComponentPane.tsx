@@ -334,7 +334,7 @@ const SymmetricComponentPane = () => {
       charts = [
         renderVictoryChart(
           Array.from({ length: phasrLocations.length }, (_, i) => i),
-          "Phasor diagram for IA, IB, and IC" // Adjust this title as required
+          " IA IB IC"
         ),
       ];
       break;
