@@ -206,11 +206,19 @@ const SymmetricComponentPane = () => {
 
   const [cursorsState] = useRecoilState(cursorsStateAtom);
 
+  if (!cursorsState) {
+    return <div>No cursors</div>;
+  }
+
   const cursorPosition = cursorsState[1].x as number; // value in micro seconds
 
   const eventsState = useRecoilValue(eventsStateAtom);
 
   // TODO source picker
+
+  if (eventsState.length === 0) {
+    return <div>No data sources</div>;
+  }
 
   //TODO don't crash when no sources selected
   const digitalDataSources = eventsState[0].digitalDataSources;
@@ -273,11 +281,11 @@ const SymmetricComponentPane = () => {
             x:
               phasrLocations[i].magnitude *
               Math.cos(phasrLocations[i].angle) *
-              scalingFactor,
+              0.0001,
             y:
               phasrLocations[i].magnitude *
               Math.sin(phasrLocations[i].angle) *
-              scalingFactor,
+              0.0001,
           },
         ]}
       />
