@@ -198,11 +198,11 @@ const SymmetricComponentPane = () => {
     { angle: PhaserZero.angle, magnitude: PhaserZero.magnitude },
   ];
 
-  const plottingMaxMagnitude = 1;
-  const actualMaxMagnitude = Math.max(
-    ...phasrLocations.map((phasor) => Math.abs(phasor.magnitude))
-  );
-  const scalingFactor = plottingMaxMagnitude / actualMaxMagnitude;
+  // const plottingMaxMagnitude = 1;
+  // const actualMaxMagnitude = Math.max(
+  //   ...phasrLocations.map((phasor) => Math.abs(phasor.magnitude))
+  // );
+  // const scalingFactor = plottingMaxMagnitude / actualMaxMagnitude;
 
   const [cursorsState] = useRecoilState(cursorsStateAtom);
 
