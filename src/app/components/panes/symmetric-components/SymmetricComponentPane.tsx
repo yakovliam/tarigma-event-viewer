@@ -22,21 +22,92 @@ import {
   VictoryTheme,
 } from "victory";
 import { Button, Card } from "@blueprintjs/core";
+import { dft, util } from "fft-js";
 
 type PhaserType = "positive" | "negative" | "zero";
 
 type PhasorArray = { angle: number; magnitude: number }[];
 
-// const computePhasors = (cursorPosition) => {
-//     // Find the relevant COMTRADE data using the cursor position
-//     const comtradeData = ...;
+const getPhasorsAtCursor = (
+  sourceIndex: number,
+  cursorPosition: number,
+  analogDataSources: any[]
+): { angle: number; magnitude: number } => {
+  if (
+    !analogDataSources ||
+    !analogDataSources[sourceIndex].channel.values.length
+  ) {
+    console.error("No data available in analogDataSources");
+    return { angle: 0, magnitude: 0 };
+  }
 
-//     // Compute the phasors using your existing logic
-//     const newPhasors = ...;
+  const windowSize = 256;
 
-//     // Update the phasor state
-//     setPhasors(newPhasors);
-// }
+  // Find the index of the timestamp closest to cursorPosition
+  const closestIndex = analogDataSources[sourceIndex].channel.values.findIndex(
+    (val: { timestamp: number }) =>
+      Math.abs(val.timestamp - cursorPosition) <=
+      (analogDataSources[sourceIndex].channel.values[1].timestamp -
+        analogDataSources[sourceIndex].channel.values[0].timestamp) /
+        2
+  );
+
+  if (closestIndex === -1) {
+    console.error("Couldn't find a matching index for cursor position");
+    return { angle: 0, magnitude: 0 };
+  }
+
+  const halfWindow = Math.floor(windowSize / 2);
+  const startIndex = Math.max(0, closestIndex - halfWindow);
+  const endIndex = Math.min(
+    analogDataSources[sourceIndex].channel.values.length - 1,
+    closestIndex + halfWindow
+  );
+
+  const waveformValues = analogDataSources[sourceIndex].channel.values
+    .slice(startIndex, endIndex)
+    .map(
+      (val: { value: any }) =>
+        (val.value + analogDataSources[sourceIndex].channel.info.offset) *
+        analogDataSources[sourceIndex].channel.info.multiplier
+    );
+  console.log("cursorPosition:", cursorPosition);
+  console.log("startIndex:", startIndex, "endIndex:", endIndex);
+  console.log(
+    "Data length:",
+    analogDataSources[sourceIndex].channel.values.length
+  );
+  console.log(
+    "Sample values:",
+    analogDataSources[sourceIndex].channel.values.slice(0, 5)
+  );
+
+  if (!waveformValues.length) {
+    console.error("No waveform values extracted");
+    return { angle: 0, magnitude: 0 };
+  }
+
+  // Compute DFT of the waveform values
+  const phasors = dft(waveformValues);
+
+  if (!phasors.length) {
+    console.error("DFT computation failed");
+    return { angle: 0, magnitude: 0 };
+  }
+
+  // Find magnitude and frequency of dominant frequency component
+  const magnitudes = util.fftMag(phasors);
+
+  // Find the index of the dominant frequency (max magnitude)
+  const dominantIndex = magnitudes.indexOf(Math.max(...magnitudes));
+  // const dominantFrequency = frequencies[dominantIndex]; Maybe we can display this when hovering over phasor?
+  const dominantMagnitude = magnitudes[dominantIndex];
+
+  const dominantPhasor = phasors[dominantIndex];
+  const phaseAngle = Math.atan2(dominantPhasor[1], dominantPhasor[0]); // atan2(imaginary part, real part)
+
+  return { angle: phaseAngle, magnitude: dominantMagnitude };
+};
 
 function getRectangularCoordinates(phaser: {
   angle: number;
@@ -91,7 +162,7 @@ function sumPhasers(
 }
 
 const SymmetricComponentPane = () => {
-  const [phasorDiagram] = useState([
+  const [phasorDiagram, setPhasorDiagram] = useState([
     { angle: (1 * Math.PI) / 3, magnitude: 1 },
     { angle: (2 * Math.PI) / 3, magnitude: 1 },
     { angle: (4 * Math.PI) / 3, magnitude: 1 },
@@ -138,10 +209,7 @@ const SymmetricComponentPane = () => {
   const digitalDataSources = eventsState[0].digitalDataSources;
   const analogDataSources = eventsState[0].analogDataSources;
 
-  const header = eventsState[0].header;
-
   // console.log("config", config);
-  console.log("header", header);
 
   // analogDataSources[n].channel.info: label, max, min, multiplier, offset, primaryFactor, primarySecondaryIdentifier, secondaryFactor, skew, units
   // analogDataSources[n].channel.values[n]: timestamp (micro seconds), value (amps)
@@ -150,7 +218,11 @@ const SymmetricComponentPane = () => {
   //digitalDataSources[n].channel.values[n]: timestamp (micro seconds), value (0 or 1)
 
   useEffect(() => {
-    // Compute phasors each time cursorPosition changes
+    setPhasorDiagram([
+      getPhasorsAtCursor(0, cursorPosition, analogDataSources),
+      getPhasorsAtCursor(1, cursorPosition, analogDataSources),
+      getPhasorsAtCursor(2, cursorPosition, analogDataSources),
+    ]);
   }, [cursorPosition, analogDataSources, digitalDataSources]);
 
   const [displayMode, setDisplayMode] = useState<
