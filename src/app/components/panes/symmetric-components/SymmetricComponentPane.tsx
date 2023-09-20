@@ -17,53 +17,98 @@ import useDimensions from "react-cool-dimensions";
 import {
   CanvasGroup,
   VictoryChart,
+  VictoryLabel,
   VictoryLine,
   VictoryPolarAxis,
   VictoryTheme,
 } from "victory";
-import {
-  Button,
-  Card,
-  Dialog,
-  DialogBody,
-  DialogFooter,
-} from "@blueprintjs/core";
-import * as fftJs from "fft-js";
-import { computeVectors } from "./FFTComputation";
-import AnalogSourcePickerDialogContent from "../../source/analog/AnalogSourcePickerDialogContent";
+import { Button, Card } from "@blueprintjs/core";
+import { dft, util } from "fft-js";
 
 type PhaserType = "positive" | "negative" | "zero";
 
 type PhasorArray = { angle: number; magnitude: number }[];
 
 const getPhasorsAtCursor = (
+  sourceIndex: number,
   cursorPosition: number,
-  analogDataSources: any[],
-  digitalDataSources: any[]
-): PhasorArray[] => {
-  const phasors: PhasorArray[] = [];
+  analogDataSources: any[]
+): { angle: number; magnitude: number } => {
+  if (
+    !analogDataSources ||
+    !analogDataSources[sourceIndex].channel.values.length
+  ) {
+    console.error("No data available in analogDataSources");
+    return { angle: 0, magnitude: 0 };
+  }
 
-  const computedVectors = computeVectors(
-    cursorPosition,
-    analogDataSources,
-    digitalDataSources
+  const windowSize = 256;
+
+  // Find the index of the timestamp closest to cursorPosition
+  const closestIndex = analogDataSources[sourceIndex].channel.values.findIndex(
+    (val: { timestamp: number }) =>
+      Math.abs(val.timestamp - cursorPosition) <=
+      (analogDataSources[sourceIndex].channel.values[1].timestamp -
+        analogDataSources[sourceIndex].channel.values[0].timestamp) /
+        2
   );
 
-  // console.log("computedVectors", computedVectors);
+  if (closestIndex === -1) {
+    console.error("Couldn't find a matching index for cursor position");
+    return { angle: 0, magnitude: 0 };
+  }
 
-  return phasors;
+  const halfWindow = Math.floor(windowSize / 2);
+  const startIndex = Math.max(0, closestIndex - halfWindow);
+  const endIndex = Math.min(
+    analogDataSources[sourceIndex].channel.values.length - 1,
+    closestIndex + halfWindow
+  );
+
+  const waveformValues = analogDataSources[sourceIndex].channel.values
+    .slice(startIndex, endIndex)
+    .map(
+      (val: { value: any }) =>
+        (val.value + analogDataSources[sourceIndex].channel.info.offset) *
+        analogDataSources[sourceIndex].channel.info.multiplier
+    );
+  console.log("cursorPosition:", cursorPosition);
+  console.log("startIndex:", startIndex, "endIndex:", endIndex);
+  console.log(
+    "Data length:",
+    analogDataSources[sourceIndex].channel.values.length
+  );
+  console.log(
+    "Sample values:",
+    analogDataSources[sourceIndex].channel.values.slice(0, 5)
+  );
+
+  if (!waveformValues.length) {
+    console.error("No waveform values extracted");
+    return { angle: 0, magnitude: 0 };
+  }
+
+  // Compute DFT of the waveform values
+  const phasors = dft(waveformValues);
+
+  if (!phasors.length) {
+    console.error("DFT computation failed");
+    return { angle: 0, magnitude: 0 };
+  }
+
+  // Find magnitude and frequency of dominant frequency component
+  const magnitudes = util.fftMag(phasors);
+
+  // Find the index of the dominant frequency (max magnitude)
+  const dominantIndex = magnitudes.indexOf(Math.max(...magnitudes));
+  // const dominantFrequency = frequencies[dominantIndex]; Maybe we can display this when hovering over phasor?
+  const dominantMagnitude = magnitudes[dominantIndex];
+
+  const dominantPhasor = phasors[dominantIndex];
+  const phaseAngle = Math.atan2(dominantPhasor[1], dominantPhasor[0]); // atan2(imaginary part, real part)
+
+  return { angle: phaseAngle, magnitude: dominantMagnitude };
 };
-
-// const computePhasors = (cursorPosition) => {
-//     // Find the relevant COMTRADE data using the cursor position
-//     const comtradeData = ...;
-
-//     // Compute the phasors using your existing logic
-//     const newPhasors = ...;
-
-//     // Update the phasor state
-//     setPhasors(newPhasors);
-// }
 
 function getRectangularCoordinates(phaser: {
   angle: number;
@@ -118,7 +163,7 @@ function sumPhasers(
 }
 
 const SymmetricComponentPane = () => {
-  const [phasorDiagram, setphasorDiagram] = useState([
+  const [phasorDiagram, setPhasorDiagram] = useState([
     { angle: (1 * Math.PI) / 3, magnitude: 1 },
     { angle: (2 * Math.PI) / 3, magnitude: 1 },
     { angle: (4 * Math.PI) / 3, magnitude: 1 },
@@ -153,7 +198,17 @@ const SymmetricComponentPane = () => {
     { angle: PhaserZero.angle, magnitude: PhaserZero.magnitude },
   ];
 
+  // const plottingMaxMagnitude = 1;
+  // const actualMaxMagnitude = Math.max(
+  //   ...phasrLocations.map((phasor) => Math.abs(phasor.magnitude))
+  // );
+  // const scalingFactor = plottingMaxMagnitude / actualMaxMagnitude;
+
   const [cursorsState] = useRecoilState(cursorsStateAtom);
+
+  if (!cursorsState) {
+    return <div>No cursors</div>;
+  }
 
   const cursorPosition = cursorsState[1].x as number; // value in micro seconds
 
@@ -161,15 +216,15 @@ const SymmetricComponentPane = () => {
 
   // TODO source picker
 
+  if (eventsState.length === 0) {
+    return <div>No data sources</div>;
+  }
+
   //TODO don't crash when no sources selected
   const digitalDataSources = eventsState[0].digitalDataSources;
   const analogDataSources = eventsState[0].analogDataSources;
 
-  const config = eventsState[0].config;
-  const header = eventsState[0].header;
-
   // console.log("config", config);
-  console.log("header", header);
 
   // analogDataSources[n].channel.info: label, max, min, multiplier, offset, primaryFactor, primarySecondaryIdentifier, secondaryFactor, skew, units
   // analogDataSources[n].channel.values[n]: timestamp (micro seconds), value (amps)
@@ -178,12 +233,11 @@ const SymmetricComponentPane = () => {
   //digitalDataSources[n].channel.values[n]: timestamp (micro seconds), value (0 or 1)
 
   useEffect(() => {
-    // Compute phasors each time cursorPosition changes
-    const newPhasorData = getPhasorsAtCursor(
-      cursorPosition,
-      analogDataSources,
-      digitalDataSources
-    );
+    setPhasorDiagram([
+      getPhasorsAtCursor(0, cursorPosition, analogDataSources),
+      getPhasorsAtCursor(1, cursorPosition, analogDataSources),
+      getPhasorsAtCursor(2, cursorPosition, analogDataSources),
+    ]);
   }, [cursorPosition, analogDataSources, digitalDataSources]);
 
   const [displayMode, setDisplayMode] = useState<
@@ -210,7 +264,7 @@ const SymmetricComponentPane = () => {
   const colors = ["red", "blue", "green"];
   const strokeWidth = [4, 3, 2.5, 2];
 
-  const renderVictoryChart = (phasorIndices: number[]) => {
+  const renderVictoryChart = (phasorIndices: number[], title: string) => {
     const components = phasorIndices.map((i) => (
       <VictoryLine
         key={`line-${i}`}
@@ -224,8 +278,14 @@ const SymmetricComponentPane = () => {
         data={[
           { x: 0, y: 0 },
           {
-            x: phasrLocations[i].magnitude * Math.cos(phasrLocations[i].angle),
-            y: phasrLocations[i].magnitude * Math.sin(phasrLocations[i].angle),
+            x:
+              phasrLocations[i].magnitude *
+              Math.cos(phasrLocations[i].angle) *
+              0.0001,
+            y:
+              phasrLocations[i].magnitude *
+              Math.sin(phasrLocations[i].angle) *
+              0.0001,
           },
         ]}
       />
@@ -237,6 +297,13 @@ const SymmetricComponentPane = () => {
           theme={VictoryTheme.material}
           groupComponent={<CanvasGroup />}
         >
+          <VictoryLabel
+            x={175}
+            y={20}
+            textAnchor="middle"
+            style={{ fontSize: 20, fill: "#333" }}
+            text={title}
+          />
           {components}
           <VictoryPolarAxis
             style={{
@@ -267,25 +334,28 @@ const SymmetricComponentPane = () => {
     | undefined;
   switch (displayMode) {
     case "firstThree":
-      charts = [renderVictoryChart([0, 1, 2])];
+      charts = [
+        renderVictoryChart([0, 1, 2], "Phasor diagram for IA, IB, and IC"),
+      ];
       break;
     case "allTogether":
       charts = [
         renderVictoryChart(
-          Array.from({ length: phasrLocations.length }, (_, i) => i)
+          Array.from({ length: phasrLocations.length }, (_, i) => i),
+          " IA IB IC"
         ),
       ];
       break;
     case "groups":
       charts = [
-        <div key="upper-group">
-          {renderVictoryChart([0, 1, 2])}
-          {renderVictoryChart([3, 4, 5])}
+        <div key="left">{renderVictoryChart([0, 1, 2], "Input")}</div>,
+        <div key="center-left">
+          {renderVictoryChart([3, 4, 5], "Positive")}
         </div>,
-        <div key="lower-group">
-          {renderVictoryChart([6, 7, 8])}
-          {renderVictoryChart([9])}
+        <div key="center-right">
+          {renderVictoryChart([6, 7, 8], "Negative")}
         </div>,
+        <div key="right">{renderVictoryChart([9], "Zero")}</div>,
       ];
       break;
     default:
@@ -293,17 +363,13 @@ const SymmetricComponentPane = () => {
       break;
   }
 
-  let buttonText = "";
   switch (displayMode) {
     case "firstThree":
-      buttonText = "Show All Lines Together";
       break;
     case "allTogether":
-      buttonText = "Show Lines in Groups";
       break;
     case "groups":
     default:
-      buttonText = "Show First Three Lines";
       break;
   }
 

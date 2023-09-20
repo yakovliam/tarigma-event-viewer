@@ -2,8 +2,11 @@
   "name": "tarigma-event-viewer-vite",
   "private": true,
   "version": "0.0.0",
+  "homepage": "https://TikoTheArmenian.github.io/tarigma-event-viewer-gh-pages",
   "type": "module",
   "scripts": {
+  "predeploy": "yarn build",
+  "deploy": "gh-pages -d dist",
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",

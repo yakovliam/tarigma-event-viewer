@@ -48,7 +48,7 @@ interface DigitalPaneProps {
   viewId: string;
 }
 
-const DigitalPane = (props: DigitalPaneProps) => {
+const DigitalPane = (_props: DigitalPaneProps) => {
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
   const { observe, unobserve, width, height } = useDimensions();
 
