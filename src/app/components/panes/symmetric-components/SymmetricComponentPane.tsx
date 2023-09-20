@@ -24,6 +24,7 @@ import {
 } from "victory";
 import { Button, Card } from "@blueprintjs/core";
 import { dft, util } from "fft-js";
+import { AnalogDataSource } from "../../../../types/data/data-source";
 
 type PhaserType = "positive" | "negative" | "zero";
 
@@ -32,13 +33,13 @@ type PhasorArray = { angle: number; magnitude: number }[];
 const getPhasorsAtCursor = (
   sourceIndex: number,
   cursorPosition: number,
-  analogDataSources: any[]
+  analogDataSources: AnalogDataSource[]
 ): { angle: number; magnitude: number } => {
   if (
     !analogDataSources ||
     !analogDataSources[sourceIndex].channel.values.length
   ) {
-    console.error("No data available in analogDataSources");
+    console.log("No data available in analogDataSources");
     return { angle: 0, magnitude: 0 };
   }
 
@@ -68,7 +69,7 @@ const getPhasorsAtCursor = (
   const waveformValues = analogDataSources[sourceIndex].channel.values
     .slice(startIndex, endIndex)
     .map(
-      (val: { value: any }) =>
+      (val: { value: number }) =>
         (val.value + analogDataSources[sourceIndex].channel.info.offset) *
         analogDataSources[sourceIndex].channel.info.multiplier
     );
@@ -205,24 +206,17 @@ const SymmetricComponentPane = () => {
   // const scalingFactor = plottingMaxMagnitude / actualMaxMagnitude;
 
   const [cursorsState] = useRecoilState(cursorsStateAtom);
-
-  if (!cursorsState) {
-    return <div>No cursors</div>;
-  }
-
-  const cursorPosition = cursorsState[1].x as number; // value in micro seconds
-
   const eventsState = useRecoilValue(eventsStateAtom);
+
+  // const cursorPosition = cursorsState[1].x as number; // value in micro seconds
+  // TODO test/fix this logic
+  const cursorPosition = (cursorsState && cursorsState[1].x) || 0; // value in micro seconds
 
   // TODO source picker
 
-  if (eventsState.length === 0) {
-    return <div>No data sources</div>;
-  }
-
   //TODO don't crash when no sources selected
-  const digitalDataSources = eventsState[0].digitalDataSources;
-  const analogDataSources = eventsState[0].analogDataSources;
+  const digitalDataSources = eventsState[0]?.digitalDataSources;
+  const analogDataSources = eventsState[0]?.analogDataSources;
 
   // console.log("config", config);
 
@@ -263,6 +257,10 @@ const SymmetricComponentPane = () => {
   const { observe } = useDimensions();
   const colors = ["red", "blue", "green"];
   const strokeWidth = [4, 3, 2.5, 2];
+
+  if (eventsState.length === 0) {
+    return <div>No data sources</div>;
+  }
 
   const renderVictoryChart = (phasorIndices: number[], title: string) => {
     const components = phasorIndices.map((i) => (
@@ -328,7 +326,7 @@ const SymmetricComponentPane = () => {
     | number
     | boolean
     | JSX.Element[]
-    | ReactElement<any, string | JSXElementConstructor<any>>
+    | ReactElement<unknown, string | JSXElementConstructor<unknown>>
     | ReactFragment
     | null
     | undefined;

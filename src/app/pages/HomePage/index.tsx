@@ -41,6 +41,7 @@ export function HomePage() {
       setRepository(initializeTiles());
     }
     setShouldInitializeTiles(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**

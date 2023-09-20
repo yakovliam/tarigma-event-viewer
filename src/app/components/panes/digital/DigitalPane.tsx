@@ -48,6 +48,7 @@ interface DigitalPaneProps {
   viewId: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DigitalPane = (_props: DigitalPaneProps) => {
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
   const { observe, unobserve, width, height } = useDimensions();
@@ -230,6 +231,7 @@ const DigitalPane = (_props: DigitalPaneProps) => {
       x: [minY, maxY],
       y: [minX, maxX],
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     selectedSources,
     setZoomDomain,
@@ -242,7 +244,7 @@ const DigitalPane = (_props: DigitalPaneProps) => {
   return (
     <PaneWrapper
       $isDark={isDarkTheme(blueprintTheme)}
-      ref={(el) => {
+      ref={(el: HTMLDivElement) => {
         observe(el); // set the target element for measuring
         paneRef.current = el; // share the element for other purposes
       }}

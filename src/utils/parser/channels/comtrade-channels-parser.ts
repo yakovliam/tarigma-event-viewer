@@ -12,13 +12,13 @@ interface ParseChannelsReturnType {
   digitalChannels: DigitalChannel[];
 }
 
-const shiftArray = (arr: Array<Array<any>>): Array<Array<any>> =>
+const shiftArray = (arr: Array<Array<string>>): Array<Array<string>> =>
   arr.map((row) => {
     row.shift();
     return row;
   });
 
-const getColumnArray = (arr: Array<Array<string>>, n: number): Array<any> =>
+const getColumnArray = (arr: Array<Array<string>>, n: number): Array<string> =>
   arr.map((x) => x[n]);
 
 const parseChannels = (
@@ -50,7 +50,7 @@ const parseChannels = (
 
   // create array of timestamps
   // loop through only first column (now only timestamps) to gather timestamps
-  const timestamps = getColumnArray(data, 0) as Array<number>;
+  const timestamps = getColumnArray(data, 0) as unknown as number[];
 
   // shift again to remove timestamps
   data = shiftArray(data);
@@ -74,7 +74,7 @@ const parseChannels = (
       .map((value, index) => {
         const valuePair: TimestampedValue = {
           timestamp: timestamps[index],
-          value,
+          value: parseFloat(value),
         };
         return valuePair;
       });
@@ -120,7 +120,7 @@ const parseChannels = (
       .map((value, index) => {
         const valuePair: TimestampedValue = {
           timestamp: timestamps[index],
-          value,
+          value: parseFloat(value),
         };
         return valuePair;
       });

@@ -1,7 +1,7 @@
 import DigitalChannelInfo from "../../../../types/data/comtrade/config/digital-channel-info";
 
 const parseDigitalChannelsContentToDigitalChannels = (
-  digitalChannelLines: Array<Array<any>>
+  digitalChannelLines: Array<Array<string>>
 ): Array<DigitalChannelInfo> => {
   // create empty digital channel info array
   const digitalChannelInfoArray: Array<DigitalChannelInfo> = [];
@@ -12,7 +12,9 @@ const parseDigitalChannelsContentToDigitalChannels = (
     const label: string = lineArray[1];
     const phaseIdentification: string = lineArray[2];
     const circuitComponent: string = lineArray[3];
-    const normal: number = lineArray[4];
+
+    // processing logic dictated by the IEEE standard
+    const normal: number = lineArray[4] === "1" ? 1 : 0;
 
     digitalChannelInfoArray.push({
       idx: index,

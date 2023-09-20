@@ -23,11 +23,11 @@ const parseConfigContentsToConfig = (configContents: string): Config => {
   );
 
   // get the rows of data that are analog/digital channels
-  const analogChannelLines: Array<Array<any>> = data.slice(
+  const analogChannelLines: Array<Array<string>> = data.slice(
     2,
     2 + channelsInfo.analogChannels - 1
   );
-  const digitalChannelLines: Array<Array<any>> = data.slice(
+  const digitalChannelLines: Array<Array<string>> = data.slice(
     2 + channelsInfo.analogChannels,
     1 + channelsInfo.analogChannels + channelsInfo.digitalChannels
   );

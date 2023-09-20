@@ -44,6 +44,7 @@ interface AnalogPaneProps {
   viewId: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const AnalogPane = (_props: AnalogPaneProps) => {
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
 
@@ -172,6 +173,7 @@ const AnalogPane = (_props: AnalogPaneProps) => {
       x: [minX, maxX],
       y: [minY, maxY],
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     selectedSources,
     setZoomDomain,
@@ -184,7 +186,7 @@ const AnalogPane = (_props: AnalogPaneProps) => {
   return (
     <PaneWrapper
       $isDark={isDarkTheme(blueprintTheme)}
-      ref={(el) => {
+      ref={(el: HTMLDivElement) => {
         observe(el); // set the target element for measuring
         paneRef.current = el; // share the element for other purposes
       }}

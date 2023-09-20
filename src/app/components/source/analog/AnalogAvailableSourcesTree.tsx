@@ -164,6 +164,7 @@ export const AnalogAvailableSourcesTree = ({
     });
 
     dispatch({ type: "RE_INITIALIZE", payload: treeNodes });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events, selectedSources]);
 
   return (

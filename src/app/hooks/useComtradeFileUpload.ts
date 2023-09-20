@@ -98,6 +98,7 @@ const useFileUpload = (acceptNewComtrade: (comtrade: Comtrade) => void) => {
       // set 'add events' button to not loading anymore
       setIsLoading(false);
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [acceptedFiles]);
 
   return { openFileDialog: open, isLoading };
