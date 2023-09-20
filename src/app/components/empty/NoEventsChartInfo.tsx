@@ -22,13 +22,13 @@ const EmptyStateWrapper = styled.div<EmptyStateWrapperProps>`
  * Wrapper for the empty state component.
  * @returns an empty state component to display when there are no data sources selected
  */
-const EmptyChartInfo = () => {
+const NoEventsChartInfo = () => {
   const blueprintTheme = useRecoilValue<string>(blueprintThemeRepository);
   return (
     <EmptyStateWrapper $isDark={isDarkTheme(blueprintTheme)}>
       <NonIdealState
         icon="inbox-search"
-        title="No data sources selected."
+        title="No events opened."
         description={
           "Open one to view grid-critical data."
         }
@@ -37,4 +37,4 @@ const EmptyChartInfo = () => {
   );
 };
 
-export default EmptyChartInfo;
+export default NoEventsChartInfo;

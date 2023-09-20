@@ -25,6 +25,15 @@ import {
 import { Button, Card } from "@blueprintjs/core";
 import { dft, util } from "fft-js";
 import { AnalogDataSource } from "../../../../types/data/data-source";
+import NoEventsChartInfo from "../../empty/NoEventsChartInfo";
+
+// TODO add events selector AND source selector for the selected event
+// right now it just grabs the first event and the first three 'current (amps)' sources
+// we need it to be dynamic and build the phasor diagram based on the selected sources and 
+// selected events
+
+// TODO maybe make it able to dynamically add and arrange phasor diagrams so you can have multiple
+// events and multiple sources in one pane?
 
 type PhaserType = "positive" | "negative" | "zero";
 
@@ -258,10 +267,6 @@ const SymmetricComponentPane = () => {
   const colors = ["red", "blue", "green"];
   const strokeWidth = [4, 3, 2.5, 2];
 
-  if (eventsState.length === 0) {
-    return <div>No data sources</div>;
-  }
-
   const renderVictoryChart = (phasorIndices: number[], title: string) => {
     const components = phasorIndices.map((i) => (
       <VictoryLine
@@ -373,7 +378,7 @@ const SymmetricComponentPane = () => {
 
   return (
     <PaneWrapper $isDark={isDarkTheme(blueprintTheme)} ref={observe}>
-      {charts}
+      {eventsState.length > 0 ? charts : <NoEventsChartInfo />}
       <Card
         style={{
           padding: "4px",
